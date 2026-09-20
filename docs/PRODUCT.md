@@ -435,6 +435,8 @@ The initial map should show longitude-aligned timezone bands approximately as:
 ```
 
 These bands are visual guidance rather than authoritative timezone boundaries.
+Their labels and vertical grid must share the map's horizontal pan and zoom transform,
+so the geography cannot move out of alignment with the displayed offsets.
 
 Actual timezone assignment must come from timezone data.
 

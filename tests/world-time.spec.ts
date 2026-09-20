@@ -46,6 +46,35 @@ test('country marker does not block selecting a neighbouring country', async ({ 
   await expect(page.getByText('Africa / Abidjan').first()).toBeVisible()
 })
 
+test('UTC bands stay synchronized with map pan and zoom', async ({ page }, testInfo) => {
+  const mapTransform = page.locator('.rsm-zoomable-group')
+  const bandTransform = page.locator('.band-transform')
+  const synchronized = async () => {
+    const mapValue = await mapTransform.getAttribute('transform')
+    const bandValue = await bandTransform.getAttribute('transform')
+    const mapMatch = mapValue?.match(/translate\(([-\d.]+) [-\d.]+\) scale\(([-\d.]+)\)/)
+    const bandMatch = bandValue?.match(/translate\(([-\d.]+) 0\) scale\(([-\d.]+) 1\)/)
+    return Boolean(mapMatch && bandMatch && Math.abs(Number(mapMatch[1]) - Number(bandMatch[1])) < 0.01 && Math.abs(Number(mapMatch[2]) - Number(bandMatch[2])) < 0.01)
+  }
+
+  await expect.poll(synchronized).toBe(true)
+  const initialTransform = await mapTransform.getAttribute('transform')
+  const initialBandWidth = (await page.getByRole('button', { name: 'Select UTC', exact: true }).boundingBox())!.width
+  await page.getByRole('button', { name: 'Zoom in' }).click()
+  await expect.poll(synchronized).toBe(true)
+  expect(await mapTransform.getAttribute('transform')).not.toBe(initialTransform)
+  expect((await page.getByRole('button', { name: 'Select UTC', exact: true }).boundingBox())!.width).toBeGreaterThan(initialBandWidth)
+
+  const map = page.getByRole('img', { name: /world map/i })
+  const bounds = (await map.boundingBox())!
+  await page.mouse.move(bounds.x + bounds.width * 0.65, bounds.y + bounds.height * 0.55)
+  await page.mouse.down()
+  await page.mouse.move(bounds.x + bounds.width * 0.45, bounds.y + bounds.height * 0.55, { steps: 5 })
+  await page.mouse.up()
+  await expect.poll(synchronized).toBe(true)
+  await page.screenshot({ path: testInfo.outputPath('panned-zoomed-map.png'), fullPage: true })
+})
+
 test('large countries keep a scrollable, searchable timezone list', async ({ page }, testInfo) => {
   await page.getByRole('button', { name: /United States of America\. Press Enter to select/ }).click()
   const sidebar = page.getByRole('complementary', { name: 'Selected timezone details' })

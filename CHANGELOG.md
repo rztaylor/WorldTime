@@ -23,6 +23,7 @@ All notable changes follow Keep a Changelog categories.
 
 ### Fixed
 
+- Kept UTC offset headings and vertical bands aligned with the map while panning and zooming.
 - UTC-band selection now shades and lists every country currently sharing the offset instead of selecting an arbitrary country.
 - Removed the inactive country-detail chevron; offset country rows retain chevrons and drill into the selected country.
 - Selected countries now use a red fill rather than an outline, including countries outside the original curated city list such as Peru.
