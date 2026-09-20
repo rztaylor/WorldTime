@@ -487,6 +487,8 @@ Selected country may display a floating label:
 ```
 
 Avoid oversized popup balloons.
+Do not draw a focus rectangle or selection border around a country; the red fill is the
+complete visual selection treatment. Labels and markers must not intercept country clicks.
 
 ---
 
@@ -539,12 +541,14 @@ Example:
 Typical width:
 
 ```text
-156-180px
+156-210px
 ```
 
 Cards should remain short and compact enough that approximately 6-7 are visible on a laptop.
 The AM/PM suffix is smaller and lower contrast than the clock digits. Cards span the full
 content width beneath both the sidebar and map.
+Each card, including Add City, has a 210px maximum width. When the row does not overflow,
+the complete card group is centred in the available card area.
 
 The row should scroll horizontally when necessary.
 

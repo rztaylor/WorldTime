@@ -20,4 +20,6 @@ All notable changes follow Keep a Changelog categories.
 ### Fixed
 
 - Selected countries now use a red fill rather than an outline, including countries outside the original curated city list such as Peru.
+- Prevented the selected-country label from blocking clicks on neighbouring countries and removed the residual SVG focus border.
+- Capped and centred timezone and Add City cards within the comparison area.
 - Set the page-level background to prevent white borders on large displays and removed the footer.

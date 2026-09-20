@@ -27,6 +27,14 @@ test('map countries and UTC bands update the sidebar without adding cards', asyn
   await expect(page.getByRole('article')).toHaveCount(1)
 })
 
+test('country marker does not block selecting a neighbouring country', async ({ page }) => {
+  await page.getByRole('button', { name: /Côte d'Ivoire\. Press Enter to select/ }).click()
+  await expect(page.getByText("Côte d'Ivoire").first()).toBeVisible()
+  await page.getByRole('button', { name: /Ghana\. Press Enter to select/ }).click()
+  await expect(page.getByText('Ghana').first()).toBeVisible()
+  await expect(page.getByText('Africa / Abidjan').first()).toBeVisible()
+})
+
 test('renders the responsive comparison experience', async ({ page }, testInfo) => {
   await expect(page.getByRole('img', { name: /world map/i })).toBeVisible()
   await expect(page.getByRole('heading', { name: 'Overlap Hours' })).toBeVisible()

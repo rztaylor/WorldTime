@@ -7,7 +7,7 @@ import type { LocationRecord, SelectedTimezone, StoredPreferences, Theme, TimeFo
 
 interface TimezoneContextValue {
   selected: SelectedTimezone[]
-  active: SelectedTimezone
+  active: LocationRecord
   timeFormat: TimeFormat
   theme: Theme
   workingHours: WorkingHours
@@ -44,6 +44,7 @@ function initialPreferences(): StoredPreferences {
 
 export function TimezoneProvider({ children }: { children: ReactNode }) {
   const [preferences, setPreferences] = useState(initialPreferences)
+  const [inspectedLocation, setInspectedLocation] = useState<LocationRecord | null>(null)
 
   useEffect(() => savePreferences(preferences), [preferences])
 
@@ -56,19 +57,25 @@ export function TimezoneProvider({ children }: { children: ReactNode }) {
 
   const update = (change: (current: StoredPreferences) => StoredPreferences) => setPreferences(change)
 
-  const selectLocation = (location: LocationRecord) => update((current) => ({
-    ...current,
-    activeTimezone: location.timezone,
-  }))
-
-  const addLocation = (location: LocationRecord) => update((current) => {
-    const exists = current.selectedTimezones.some(({ timezone }) => timezone === location.timezone)
-    return {
+  const selectLocation = (location: LocationRecord) => {
+    setInspectedLocation(location)
+    update((current) => ({
       ...current,
       activeTimezone: location.timezone,
-      selectedTimezones: exists ? current.selectedTimezones : [...current.selectedTimezones, { ...location, isHome: false }],
-    }
-  })
+    }))
+  }
+
+  const addLocation = (location: LocationRecord) => {
+    setInspectedLocation(location)
+    update((current) => {
+      const exists = current.selectedTimezones.some(({ timezone }) => timezone === location.timezone)
+      return {
+        ...current,
+        activeTimezone: location.timezone,
+        selectedTimezones: exists ? current.selectedTimezones : [...current.selectedTimezones, { ...location, isHome: false }],
+      }
+    })
+  }
 
   const removeLocation = (id: string) => update((current) => {
     const target = current.selectedTimezones.find((item) => item.id === id)
@@ -106,7 +113,8 @@ export function TimezoneProvider({ children }: { children: ReactNode }) {
     return { ...current, selectedTimezones: next }
   })
 
-  const active = preferences.selectedTimezones.find(({ timezone }) => timezone === preferences.activeTimezone)
+  const active = inspectedLocation
+    ?? preferences.selectedTimezones.find(({ timezone }) => timezone === preferences.activeTimezone)
     ?? ({ ...(locationForTimezone(preferences.activeTimezone) ?? preferences.selectedTimezones[0]), isHome: false })
   const value: TimezoneContextValue = {
     selected: preferences.selectedTimezones,

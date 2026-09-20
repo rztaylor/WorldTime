@@ -112,7 +112,8 @@ nav a.active::after { content: ""; position: absolute; height: 3px; background: 
 .supported-country:hover { fill: color-mix(in srgb, var(--map) 72%, var(--ink)); }
 .related-country { fill: var(--map-related); }
 .selected-country { fill: var(--map-selected); }
-.country:focus-visible { outline: none; stroke: var(--accent); stroke-width: 1.5; }
+.country:focus, .country:focus-visible { outline: none; }
+.active-marker { pointer-events: none; }
 .active-marker rect { fill: var(--ink); stroke: var(--canvas); stroke-width: .7; }
 .active-marker > circle:first-child { fill: var(--canvas); stroke: var(--ink); stroke-width: 3; }
 .active-marker text { fill: var(--canvas); font-size: 10px; font-weight: 700; }
@@ -133,8 +134,8 @@ nav a.active::after { content: ""; position: absolute; height: 3px; background: 
 .strip-toolbar h2, .strip-toolbar p { display: flex; align-items: center; gap: 7px; margin: 0; font-size: 10px; font-weight: 500; }
 .strip-toolbar svg { width: 14px; height: 14px; }
 .strip-toolbar p { color: var(--muted); }
-.card-row { display: flex; gap: 10px; overflow-x: auto; padding: 2px 2px 8px; scrollbar-width: thin; }
-.timezone-card, .add-card { flex: 1 0 156px; min-width: 156px; height: 116px; padding: 9px 11px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--canvas); text-align: left; }
+.card-row { display: flex; justify-content: safe center; gap: 10px; overflow-x: auto; padding: 2px 2px 8px; scrollbar-width: thin; }
+.timezone-card, .add-card { flex: 0 0 210px; min-width: 156px; max-width: 210px; height: 116px; padding: 9px 11px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--canvas); text-align: left; }
 .timezone-card { cursor: pointer; display: flex; flex-direction: column; position: relative; }
 .timezone-card.active-card:not(.home-card) { border-color: var(--line-strong); box-shadow: inset 0 -3px var(--ink); }
 .timezone-card.home-card { background: var(--ink); color: var(--canvas); border-color: var(--ink); }
@@ -212,7 +213,7 @@ nav a.active::after { content: ""; position: absolute; height: 3px; background: 
   .zone-display { font-size: 36px; }
   .timezone-strip { padding: 15px 14px; }
   .strip-toolbar p { display: none; }
-  .timezone-card, .add-card { flex-basis: 156px; min-width: 156px; }
+  .timezone-card, .add-card { flex-basis: 156px; min-width: 156px; max-width: 156px; }
   .overlap-panel { margin: 0 14px 16px; grid-template-columns: 1fr; }
   .overlap-title { padding: 17px 18px 10px; }
   .overlap-chart { border: 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); padding: 14px 18px; }
