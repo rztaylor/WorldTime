@@ -1,0 +1,9 @@
+node_modules/
+.npm-cache/
+.agents/skills
+dist/
+coverage/
+playwright-report/
+test-results/
+.DS_Store
+*.local
