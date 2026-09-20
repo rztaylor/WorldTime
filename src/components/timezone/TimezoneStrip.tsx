@@ -1,6 +1,6 @@
 import { closestCenter, DndContext, KeyboardSensor, PointerSensor, useSensor, useSensors, type DragEndEvent } from '@dnd-kit/core'
 import { horizontalListSortingStrategy, SortableContext, sortableKeyboardCoordinates } from '@dnd-kit/sortable'
-import { ArrowLeftRight, CheckCircle2, Plus } from 'lucide-react'
+import { Plus } from 'lucide-react'
 import { useTimezones } from '../../app/TimezoneProvider'
 import { SortableTimezoneCard } from './TimezoneCard'
 
@@ -15,11 +15,7 @@ export function TimezoneStrip({ now }: { now: number }) {
   }
 
   return (
-    <section id="timezones" className="timezone-strip" aria-labelledby="timezone-strip-title">
-      <div className="strip-toolbar">
-        <h2 id="timezone-strip-title"><ArrowLeftRight /> Drag to reorder</h2>
-        <p><CheckCircle2 /> All times are saved to your browser</p>
-      </div>
+    <section id="timezones" className="timezone-strip" aria-label="Compared timezones">
       <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={dragEnd}>
         <SortableContext items={selected.map((item) => item.id)} strategy={horizontalListSortingStrategy}>
           <div className="card-row">

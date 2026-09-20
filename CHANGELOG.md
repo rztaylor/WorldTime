@@ -15,10 +15,11 @@ All notable changes follow Keep a Changelog categories.
 ### Changed
 
 - Separated map/search/sidebar selection from the explicit **Add to comparison** action.
-- Tightened the overall layout and timezone cards, moved the 12/24-hour control into the header, and extended the card strip beneath the sidebar.
+- Tightened the overall layout and timezone cards, moved the 12/24-hour control into the header, and placed the compact card strip beneath the map while the sidebar spans the full workspace height.
 - Standardized user-facing offsets on UTC and simplified Home cards to an icon beside the city name.
 - Updated the map annotation to show the country prominently with the selected city beneath it.
 - Kept the desktop map/sidebar region at a stable height with internal sidebar scrolling and a concise common-timezone list.
+- Removed redundant card-strip guidance and aligned each card's UTC offset beside its timezone name.
 
 ### Fixed
 

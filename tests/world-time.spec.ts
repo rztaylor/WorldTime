@@ -44,6 +44,26 @@ test('large countries keep a scrollable, searchable timezone list', async ({ pag
   await page.screenshot({ path: testInfo.outputPath('filtered-timezones.png'), fullPage: true })
 })
 
+test('desktop workspace keeps cards beneath the map and the sidebar alongside the overlap panel', async ({ page }) => {
+  test.skip((await page.viewportSize())!.width <= 800, 'Desktop layout assertion')
+  await expect(page.getByText('Drag to reorder')).toHaveCount(0)
+  await expect(page.getByText(/All times are saved/i)).toHaveCount(0)
+
+  const sidebar = await page.getByRole('complementary', { name: 'Selected timezone details' }).boundingBox()
+  const map = await page.locator('.map-panel').boundingBox()
+  const card = await page.getByRole('article').first().boundingBox()
+  const overlap = await page.getByRole('heading', { name: 'Overlap Hours' }).locator('..').locator('..').boundingBox()
+
+  expect(sidebar).not.toBeNull()
+  expect(map).not.toBeNull()
+  expect(card).not.toBeNull()
+  expect(overlap).not.toBeNull()
+  expect(map!.height).toBeGreaterThanOrEqual(500)
+  expect(card!.height).toBeLessThanOrEqual(100)
+  expect(card!.x).toBeGreaterThanOrEqual(map!.x)
+  expect(sidebar!.y + sidebar!.height).toBeGreaterThanOrEqual(overlap!.y + overlap!.height)
+})
+
 test('renders the responsive comparison experience', async ({ page }, testInfo) => {
   await expect(page.getByRole('img', { name: /world map/i })).toBeVisible()
   await expect(page.getByRole('heading', { name: 'Overlap Hours' })).toBeVisible()

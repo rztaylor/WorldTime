@@ -33,8 +33,11 @@ export function SortableTimezoneCard({ timezone, now, index, total }: Props) {
         <button className="remove-card" onClick={(event) => { event.stopPropagation(); removeLocation(timezone.id) }} disabled={total === 1} aria-label={`Remove ${timezone.city}`}><X /></button>
       </div>
       <div className="card-time"><strong>{clock.time}</strong>{clock.period && <span>{clock.period}</span>}</div>
-      <div className="card-zone">{timezone.timezone.replaceAll('_', ' ')}</div>
-      <div className="card-meta"><span>{offsetLabel(now, timezone.timezone)}</span>{relation !== 'Today' && <em>{relation}</em>}</div>
+      <div className="card-zone">
+        <span>{timezone.timezone.replaceAll('_', ' ')}</span>
+        {relation !== 'Today' && <em>{relation}</em>}
+        <strong>{offsetLabel(now, timezone.timezone)}</strong>
+      </div>
       <div className="card-actions">
         {!timezone.isHome && <button onClick={(event) => { event.stopPropagation(); setHome(timezone.id) }}><Star /> Set Home</button>}
         <span className="move-buttons">

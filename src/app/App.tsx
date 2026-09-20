@@ -10,10 +10,13 @@ export function App() {
   return (
     <div className="app-shell">
       <Header />
-      <main>
-        <div className="map-layout"><TimezoneSidebar now={now} /><WorldMap now={now} /></div>
-        <TimezoneStrip now={now} />
-        <OverlapHours now={now} />
+      <main className="content-layout">
+        <TimezoneSidebar now={now} />
+        <div className="main-content">
+          <WorldMap now={now} />
+          <TimezoneStrip now={now} />
+          <OverlapHours now={now} />
+        </div>
       </main>
     </div>
   )

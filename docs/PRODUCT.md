@@ -547,8 +547,9 @@ Typical width:
 ```
 
 Cards should remain short and compact enough that approximately 6-7 are visible on a laptop.
-The AM/PM suffix is smaller and lower contrast than the clock digits. Cards span the full
-content width beneath both the sidebar and map.
+The AM/PM suffix is smaller and lower contrast than the clock digits. The UTC offset shares
+the timezone-name row and is aligned to its right edge. Cards occupy the space beneath the map,
+while the sidebar continues alongside the cards and overlap-hours panel.
 Each card, including Add City, has a 210px maximum width. When the row does not overflow,
 the complete card group is centred in the available card area.
 
@@ -561,6 +562,9 @@ overflow-x-auto
 ```
 
 but retain drag-and-drop behaviour.
+
+The interface does not need explanatory “drag to reorder” or persistence copy above the cards;
+the drag handles communicate reordering and browser persistence is implicit.
 
 ---
 
