@@ -1,9 +1,9 @@
-import { Clock3, Globe2, Home, Moon, Search, Sun } from 'lucide-react'
+import { Clock3, Globe2, Home, Monitor, Moon, Sun } from 'lucide-react'
 import { GlobalSearch } from './GlobalSearch'
 import { useTimezones } from '../../app/TimezoneProvider'
 
 export function Header() {
-  const { active, selected, setHome, theme, cycleTheme } = useTimezones()
+  const { active, selected, setHome, theme, cycleTheme, timeFormat, toggleTimeFormat } = useTimezones()
   const activeCard = selected.find((item) => item.timezone === active.timezone)
 
   return (
@@ -16,12 +16,14 @@ export function Header() {
         <a className="active" href="#map">Map</a>
         <a href="#timezones">Timezones</a>
         <a href="#overlap">Compare</a>
-        <a href="#about">About</a>
       </nav>
       <div className="header-actions">
         <GlobalSearch />
+        <button className="format-button" onClick={toggleTimeFormat} aria-label={`Using ${timeFormat === '12h' ? '12' : '24'}-hour time. Change time format`}>
+          <Clock3 /><span>{timeFormat === '12h' ? '12H' : '24H'}</span>
+        </button>
         <button className="icon-button" onClick={cycleTheme} aria-label={`Theme: ${theme}. Change theme`}>
-          {theme === 'dark' ? <Moon /> : theme === 'light' ? <Sun /> : <Clock3 />}
+          {theme === 'dark' ? <Moon /> : theme === 'light' ? <Sun /> : <Monitor />}
         </button>
         <button
           className="home-button"
@@ -32,7 +34,6 @@ export function Header() {
           <span>{activeCard?.isHome ? 'Home Timezone' : 'Set Home Timezone'}</span>
         </button>
       </div>
-      <button className="mobile-search" onClick={() => document.getElementById('global-search')?.focus()} aria-label="Open search"><Search /></button>
     </header>
   )
 }

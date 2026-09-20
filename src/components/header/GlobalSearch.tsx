@@ -8,7 +8,7 @@ export function GlobalSearch() {
   const [open, setOpen] = useState(false)
   const [highlighted, setHighlighted] = useState(0)
   const inputRef = useRef<HTMLInputElement>(null)
-  const { addLocation } = useTimezones()
+  const { selectLocation } = useTimezones()
   const results = useMemo(() => searchLocations(query), [query])
 
   useEffect(() => {
@@ -27,7 +27,7 @@ export function GlobalSearch() {
   const choose = (index: number) => {
     const result = results[index]
     if (!result) return
-    addLocation(result.location)
+    selectLocation(result.location)
     setQuery('')
     setOpen(false)
   }

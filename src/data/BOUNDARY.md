@@ -1,6 +1,6 @@
 # Data boundary
 
-Owns the curated, static catalog of cities, countries, IANA timezones, coordinates, and search aliases shipped with the app.
+Owns curated city records and the package-backed catalog adapter for countries, IANA timezones, coordinates, aliases, and map-name normalization.
 
 Does not own current-time calculations, search ranking, persistence, app state, map rendering, or network fetching.
 

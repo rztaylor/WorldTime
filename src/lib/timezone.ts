@@ -1,4 +1,6 @@
 import { DateTime } from 'luxon'
+import { catalogTimezones, countryNamesForTimezone } from '../data/catalog'
+import { locations } from '../data/locations'
 import type { LocationRecord, TimeFormat } from '../types/timezone'
 
 export const zonedDateTime = (timestamp: number, timezone: string) =>
@@ -6,6 +8,13 @@ export const zonedDateTime = (timestamp: number, timezone: string) =>
 
 export const formatClock = (timestamp: number, timezone: string, format: TimeFormat) =>
   zonedDateTime(timestamp, timezone).toFormat(format === '12h' ? 'h:mm a' : 'HH:mm')
+
+export const formatClockParts = (timestamp: number, timezone: string, format: TimeFormat) => {
+  const time = zonedDateTime(timestamp, timezone)
+  return format === '12h'
+    ? { time: time.toFormat('h:mm'), period: time.toFormat('a') }
+    : { time: time.toFormat('HH:mm'), period: '' }
+}
 
 export const offsetLabel = (timestamp: number, timezone: string) => {
   const minutes = zonedDateTime(timestamp, timezone).offset
@@ -37,4 +46,19 @@ export const describeZone = (location: LocationRecord, timestamp: number) => {
     observesDst: januaryOffset !== julyOffset,
     dstActive: current.isInDST,
   }
+}
+
+export function countryNamesForOffset(offset: number, timestamp: number) {
+  const names = new Set<string>()
+  for (const location of catalogTimezones) {
+    if (zonedDateTime(timestamp, location.timezone).offset !== offset * 60) continue
+    for (const country of countryNamesForTimezone(location.timezone)) names.add(country)
+  }
+  return names
+}
+
+export function locationForOffset(offset: number, timestamp: number): LocationRecord | null {
+  return locations.find((location) => zonedDateTime(timestamp, location.timezone).offset === offset * 60)
+    ?? catalogTimezones.find((location) => zonedDateTime(timestamp, location.timezone).offset === offset * 60)
+    ?? null
 }

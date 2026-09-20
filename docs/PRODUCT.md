@@ -26,14 +26,20 @@ The main workflow is:
 2. Their saved timezone configuration is restored.
 3. A world map occupies most of the screen.
 4. Timezones are shown as subtle vertical bands.
-5. Clicking a country, city or timezone selects that timezone.
+5. Clicking a country, city, timezone, or UTC band selects it for inspection.
 6. Information about that timezone appears in the left panel.
-7. The timezone is added to the comparison strip beneath the map.
+7. The user explicitly chooses **Add to comparison** before a timezone card is created.
 8. Selected timezone cards may be dragged into a different order.
 9. Any timezone can be removed.
 10. One timezone can be designated as Home.
 11. The Home timezone is visually distinctive.
 12. The user can compare overlapping working hours across all selected timezones.
+
+Selection and comparison are intentionally separate actions. Map clicks, search results,
+sidebar choices, and UTC-band headings update the current details without changing the
+saved comparison. The selected country uses the product's sole accent colour, red;
+other UI states remain monochrome. User-facing offsets are always labelled `UTC`, never
+`GMT`.
 
 No login, cloud synchronisation or account creation is required.
 
@@ -301,7 +307,7 @@ London
 Tokyo
 Japan
 America/New_York
-GMT+5
+UTC+5
 UTC-8
 PST
 ```
@@ -344,7 +350,7 @@ Selecting a result should:
 
 1. highlight the location on the map
 2. open its timezone details in the left panel
-3. add it to the selected timezone cards if not already selected
+3. expose an explicit **Add to comparison** action without adding it automatically
 
 ---
 
@@ -464,7 +470,7 @@ fill: neutral-500
 ## Selected country
 
 ```text
-fill: neutral-950
+fill: red
 ```
 
 Hover:
@@ -522,21 +528,23 @@ Example:
 
 ```text
 ┌────────────────────┐
-│ HOME            ×  │
-│ New York           │
+│ ⌂ New York      ×  │
 │                    │
 │ 10:24 AM           │
-│ EDT     UTC-4      │
+│ America/New_York   │
+│ UTC-4              │
 └────────────────────┘
 ```
 
 Typical width:
 
 ```text
-160-190px
+156-180px
 ```
 
-Cards should remain compact enough that approximately 5-6 are visible on a laptop.
+Cards should remain short and compact enough that approximately 6-7 are visible on a laptop.
+The AM/PM suffix is smaller and lower contrast than the clock digits. Cards span the full
+content width beneath both the sidebar and map.
 
 The row should scroll horizontally when necessary.
 
@@ -574,13 +582,11 @@ white text
 Example:
 
 ```text
-⌂ HOME
-
-New York
+⌂ New York
 
 10:24 AM
 
-EDT  UTC-4
+America/New_York  UTC-4
 ```
 
 Clicking:
@@ -1172,12 +1178,12 @@ Recommended:
 
 ```text
 Map
-Timezone cards
 Selected timezone details
+Timezone cards
 Overlap
 ```
 
-The country detail panel becomes a bottom sheet.
+The country detail panel stacks below the map.
 
 Example:
 
@@ -1667,7 +1673,13 @@ The initial usable release is complete when:
 * selected timezones survive reload
 * card ordering survives reload
 * Home timezone survives reload
-* search works for major cities and countries
+* search works for major cities, countries, and IANA timezone names
+* selection never adds a comparison card without explicit confirmation
+* UTC-band headings select the countries currently sharing that offset
+* selected countries use the red accent fill
+* offsets are labelled consistently as UTC
+* 12/24-hour format is controlled from the header
+* no footer is rendered
 * desktop and mobile layouts are usable
 * application works without a backend
 

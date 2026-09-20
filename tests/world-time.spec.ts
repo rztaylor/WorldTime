@@ -6,13 +6,25 @@ test.beforeEach(async ({ page }) => {
   await page.reload()
 })
 
-test('adds a city through keyboard search and persists it', async ({ page }) => {
-  await page.getByRole('combobox', { name: /search cities/i }).fill('Tokyo')
+test('search selects a timezone and only adds it after confirmation', async ({ page }) => {
+  await page.getByRole('combobox', { name: /search cities/i }).fill('Asia/Tokyo')
   await page.getByRole('option', { name: /Tokyo/i }).first().click()
-  await expect(page.getByText('Asia/Tokyo').first()).toBeVisible()
+  await expect(page.getByText('Asia / Tokyo').first()).toBeVisible()
+  await expect(page.getByRole('article').filter({ hasText: 'Tokyo' })).toHaveCount(0)
+  await page.getByRole('button', { name: 'Add to comparison' }).click()
   await expect(page.getByRole('article').filter({ hasText: 'Tokyo' })).toBeVisible()
   await page.reload()
   await expect(page.getByRole('article').filter({ hasText: 'Tokyo' })).toBeVisible()
+})
+
+test('map countries and UTC bands update the sidebar without adding cards', async ({ page }) => {
+  await page.getByRole('button', { name: /Peru\. Press Enter to select/ }).click()
+  await expect(page.getByText('America / Lima').first()).toBeVisible()
+  await expect(page.getByText('Peru').first()).toBeVisible()
+  await expect(page.getByRole('article')).toHaveCount(1)
+  await page.getByRole('button', { name: /Select UTC.*5$/ }).first().click()
+  await expect(page.getByRole('button', { name: 'Add to comparison' })).toBeVisible()
+  await expect(page.getByRole('article')).toHaveCount(1)
 })
 
 test('renders the responsive comparison experience', async ({ page }, testInfo) => {

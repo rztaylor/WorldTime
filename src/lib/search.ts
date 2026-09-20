@@ -1,4 +1,5 @@
 import { countries, locations } from '../data/locations'
+import { catalogCountries, catalogTimezones } from '../data/catalog'
 import { offsetLabel } from './timezone'
 import type { LocationRecord } from '../types/timezone'
 
@@ -34,12 +35,18 @@ export function searchLocations(query: string, timestamp = Date.now()): SearchRe
       if (location) add(location, 'Countries', country.timezones.join(' · '))
     }
   }
+  for (const location of catalogCountries) {
+    if (normalize(location.country).includes(needle)) add(location, 'Countries', location.timezone)
+  }
   for (const location of locations) {
     const searchableOffset = normalize(offsetLabel(timestamp, location.timezone)).replace('utc', 'gmt')
     const rawOffset = normalize(offsetLabel(timestamp, location.timezone))
     if (normalize(location.timezone).includes(needle) || rawOffset === needle || searchableOffset === needle) {
       add(location, 'Timezones', location.timezone)
     }
+  }
+  for (const location of catalogTimezones) {
+    if (normalize(location.timezone).includes(needle)) add(location, 'Timezones', location.country)
   }
   return results.slice(0, 12)
 }

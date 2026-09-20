@@ -1,4 +1,3 @@
-import { Globe2 } from 'lucide-react'
 import { Header } from '../components/header/Header'
 import { WorldMap } from '../components/map/WorldMap'
 import { OverlapHours } from '../components/overlap/OverlapHours'
@@ -12,16 +11,10 @@ export function App() {
     <div className="app-shell">
       <Header />
       <main>
-        <div className="map-layout"><TimezoneSidebar now={now} /><WorldMap /></div>
+        <div className="map-layout"><TimezoneSidebar now={now} /><WorldMap now={now} /></div>
         <TimezoneStrip now={now} />
         <OverlapHours now={now} />
       </main>
-      <footer id="about">
-        <a className="footer-brand" href="#map"><Globe2 /> <strong>WORLD TIME</strong></a>
-        <span>People. Places. Better Timing.</span>
-        <span>Times stay in your browser.</span>
-        <span>Built for a more connected world.</span>
-      </footer>
     </div>
   )
 }

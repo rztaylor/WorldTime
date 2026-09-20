@@ -1,6 +1,7 @@
 /* eslint-disable react-refresh/only-export-components */
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
 import { locations, locationByTimezone } from '../data/locations'
+import { locationForTimezone } from '../data/catalog'
 import { loadPreferences, savePreferences } from '../lib/storage'
 import type { LocationRecord, SelectedTimezone, StoredPreferences, Theme, TimeFormat, WorkingHours } from '../types/timezone'
 
@@ -106,7 +107,7 @@ export function TimezoneProvider({ children }: { children: ReactNode }) {
   })
 
   const active = preferences.selectedTimezones.find(({ timezone }) => timezone === preferences.activeTimezone)
-    ?? ({ ...(locationByTimezone(preferences.activeTimezone) ?? preferences.selectedTimezones[0]), isHome: false })
+    ?? ({ ...(locationForTimezone(preferences.activeTimezone) ?? preferences.selectedTimezones[0]), isHome: false })
   const value: TimezoneContextValue = {
     selected: preferences.selectedTimezones,
     active,

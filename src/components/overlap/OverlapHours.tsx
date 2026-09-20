@@ -5,7 +5,7 @@ import { calculateOverlap, longestMaximumWindow } from '../../lib/overlap'
 import { zonedDateTime } from '../../lib/timezone'
 
 export function OverlapHours({ now }: { now: number }) {
-  const { selected, workingHours, timeFormat, toggleTimeFormat } = useTimezones()
+  const { selected, workingHours, timeFormat } = useTimezones()
   const overlap = useMemo(() => calculateOverlap(selected, now, workingHours), [selected, now, workingHours])
   const window = longestMaximumWindow(overlap)
   const home = selected.find((item) => item.isHome) ?? selected[0]
@@ -30,7 +30,6 @@ export function OverlapHours({ now }: { now: number }) {
       <div className="overlap-summary">
         <strong>{homeStart && homeEnd ? `${homeStart.toFormat(timeFormat === '12h' ? 'h a' : 'HH:mm')} – ${homeEnd.toFormat(timeFormat === '12h' ? 'h a' : 'HH:mm')}` : 'No overlap'}</strong>
         <span><Users /> {window?.count ?? 0} {window?.count === 1 ? 'location' : 'locations'} online</span>
-        <button onClick={toggleTimeFormat}>{timeFormat === '12h' ? 'Use 24-hour time' : 'Use 12-hour time'}</button>
       </div>
     </section>
   )
