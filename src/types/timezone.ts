@@ -1,6 +1,8 @@
 export type TimeFormat = '12h' | '24h'
 export type Theme = 'light' | 'dark' | 'system'
 
+export const MAX_SELECTED_TIMEZONES = 10
+
 export interface LocationRecord {
   id: string
   city: string
@@ -35,4 +37,5 @@ export interface StoredPreferences {
   timeFormat: TimeFormat
   theme: Theme
   workingHours: WorkingHours
+  nightHours: WorkingHours
 }

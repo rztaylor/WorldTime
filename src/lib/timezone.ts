@@ -31,6 +31,12 @@ export const offsetLabel = (timestamp: number, timezone: string) =>
 export const zoneName = (timestamp: number, timezone: string) =>
   zonedDateTime(timestamp, timezone).offsetNameShort ?? timezone
 
+export const zoneAbbreviation = (timestamp: number, location: Pick<LocationRecord, 'timezone' | 'aliases'>) => {
+  if (!location.aliases?.length) return zoneName(timestamp, location.timezone)
+  if (location.aliases.length === 1) return location.aliases[0]
+  return location.aliases[zonedDateTime(timestamp, location.timezone).isInDST ? 1 : 0]
+}
+
 export const dayRelation = (timestamp: number, timezone: string, homeTimezone: string) => {
   const date = zonedDateTime(timestamp, timezone).startOf('day')
   const homeDate = zonedDateTime(timestamp, homeTimezone).startOf('day')
@@ -45,7 +51,7 @@ export const describeZone = (location: LocationRecord, timestamp: number) => {
   return {
     offset: offsetLabel(timestamp, location.timezone),
     standardOffset: offsetLabelForMinutes(Math.min(januaryOffset, julyOffset)),
-    abbreviation: zoneName(timestamp, location.timezone),
+    abbreviation: zoneAbbreviation(timestamp, location),
     observesDst: januaryOffset !== julyOffset,
     dstActive: current.isInDST,
   }

@@ -40,7 +40,7 @@ The main workflow is:
 Selection and comparison are intentionally separate actions. Map clicks, search results,
 sidebar choices, and UTC-band headings update the current details without changing the
 saved comparison. The selected country uses the product's sole accent colour, red;
-other UI states remain monochrome. User-facing offsets are always labelled `UTC`, never
+other UI states remain restrained. User-facing offsets are always labelled `UTC`, never
 `GMT`.
 
 No login, cloud synchronisation or account creation is required.
@@ -128,7 +128,10 @@ Map selected:      #171717
 
 Avoid gradients except where subtle opacity variation is needed for timezone bands.
 
-Use colour only if eventually required for accessibility or status states.
+Red remains the sole interaction accent and is reserved for selected map geography.
+The comparison visualization adds subtle functional colour: muted purple for nighttime,
+warm yellow for working hours, and restrained blue for the hours between. Light and dark
+themes adjust intensity and text contrast while preserving those meanings.
 
 ---
 
@@ -547,20 +550,14 @@ Example:
 └────────────────────┘
 ```
 
-Typical width:
-
-```text
-156-210px
-```
-
-Cards should remain short and compact enough that approximately 6-7 are visible on a laptop.
+Cards should remain short and compact. Desktop displays up to five equal-width cards per row,
+with a maximum of ten selected timezones forming two rows. Mobile retains horizontally
+scrollable compact cards.
 The AM/PM suffix is smaller and lower contrast than the clock digits. The UTC offset shares
 the timezone-name row and is aligned to its right edge. Cards occupy the space beneath the map,
-while the sidebar continues alongside the cards and overlap-hours panel.
-Each card, including Add City, has a 210px maximum width. When the row does not overflow,
-the complete card group is centred in the available card area.
+while the sidebar continues alongside the cards.
 
-The row should scroll horizontally when necessary.
+The mobile row should scroll horizontally when necessary.
 
 Use:
 
@@ -645,29 +642,16 @@ Avoid native HTML5 drag-and-drop because touch behaviour is inconsistent.
 
 ---
 
-# 15. Add Timezone Card
-
-At the end of the row:
-
-```text
-┌─────────────────┐
-│        +        │
-│                 │
-│    Add City     │
-│                 │
-│ search or map   │
-└─────────────────┘
-```
-
-Selecting it should focus the global search.
-
----
-
 # 16. Selected Timezone State
 
 Use the IANA timezone identifier as the canonical identity.
 
 Do not use abbreviations.
+
+The comparison contains at least one and at most ten timezones. Once ten are selected,
+additional locations remain inspectable but the Add to comparison action is disabled until
+one of the existing cards is removed. New locations are added through search, the map, or
+the timezone details panel; there is no placeholder Add City card in the card grid.
 
 Correct:
 
@@ -1061,14 +1045,12 @@ Example:
 
 ---
 
-# 26. Overlap Hours
+# 26. Compare Grid
 
-This is the strongest extra feature from the second mock-up.
-
-Below timezone cards show:
+The Compare workspace shows:
 
 ```text
-OVERLAP HOURS
+COMPARE
 
 New York
 London
@@ -1079,9 +1061,15 @@ Sydney
 00 03 06 09 12 15 18 21
 ```
 
-Each timezone gets a horizontal row.
+The overlap visualization lives in the dedicated **Compare** workspace rather than
+the main map workspace. Primary navigation contains **Map** and **Compare** only.
 
-Working periods are represented with filled cells.
+Each timezone gets a horizontal row aligned to a shared 24-hour timeline. Every cell
+shows that location's local hour in the user's selected 12- or 24-hour format, so a
+separate time legend is unnecessary. The location name and current local time remain
+prominent at the left. A vertical marker identifies the current instant.
+
+Working, nighttime, and the intervening hours use muted yellow, purple, and blue.
 
 Default working hours:
 
@@ -1089,21 +1077,10 @@ Default working hours:
 09:00-17:00 local time
 ```
 
-The tool should calculate periods where multiple selected locations overlap.
-
-Example result:
-
-```text
-Best overlap
-
-15:00-17:00 London
-10:00-12:00 New York
-16:00-18:00 Berlin
-```
-
-Do not call this an absolute "best meeting time".
-
-Simply identify maximum overlap.
+Working and nighttime ranges are shown above the grid, can be changed independently,
+and are saved with the user's other local preferences. Defaults are 09:00–17:00 for
+work and 22:00–06:00 for night. Do not calculate or highlight a maximum-overlap window;
+the aligned colour-coded rows should make useful overlap apparent at a glance.
 
 ---
 

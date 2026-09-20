@@ -24,7 +24,7 @@ const MAP_WIDTH = 800
 const MAP_HEIGHT = 410
 const BAND_COUNT = 25
 const BAND_WIDTH = MAP_WIDTH / BAND_COUNT
-const INITIAL_POSITION: MapPosition = { coordinates: [8, 10], zoom: 1 }
+const INITIAL_POSITION: MapPosition = { coordinates: [8, 10], zoom: 1.2 }
 const projection = geoEqualEarth().translate([MAP_WIDTH / 2, MAP_HEIGHT / 2]).scale(126)
 
 function transformForPosition({ coordinates, zoom }: MapPosition): MapTransform {
@@ -33,7 +33,7 @@ function transformForPosition({ coordinates, zoom }: MapPosition): MapTransform 
 }
 
 export function WorldMap({ now }: { now: number }) {
-  const { active, inspectedOffset, selectLocation, selectOffset } = useTimezones()
+  const { active, inspectedOffset, mapCountrySelected, clearMapSelection, selectLocation, selectOffset } = useTimezones()
   const [position, setPosition] = useState<MapPosition>(INITIAL_POSITION)
   const [mapTransform, setMapTransform] = useState<MapTransform>(() => transformForPosition(INITIAL_POSITION))
   const markerWidth = Math.max(96, active.country.length * 6.4 + 30, active.city.length * 5.3 + 30)
@@ -73,7 +73,13 @@ export function WorldMap({ now }: { now: number }) {
             {Array.from({ length: BAND_COUNT }, (_, index) => <rect key={index} x={index * BAND_WIDTH} width={BAND_WIDTH} height={MAP_HEIGHT} className={index % 2 ? 'band-even' : 'band-odd'} />)}
           </g>
         </svg>
-        <ComposableMap width={MAP_WIDTH} height={MAP_HEIGHT} projectionConfig={{ scale: 126 }} role="img" aria-label="World map. Select a country to inspect its timezone.">
+        <ComposableMap
+          width={MAP_WIDTH}
+          height={MAP_HEIGHT}
+          projectionConfig={{ scale: 126 }}
+          role="img"
+          aria-label="World map. Select a country to inspect its timezone."
+        >
           <ZoomableGroup
             center={position.coordinates}
             zoom={position.zoom}
@@ -84,13 +90,14 @@ export function WorldMap({ now }: { now: number }) {
             }}
             onMoveEnd={({ coordinates, zoom }) => setPosition({ coordinates: coordinates as [number, number], zoom: zoom ?? position.zoom })}
           >
+            <rect className="map-background" x={-MAP_WIDTH * 4} y={-MAP_HEIGHT * 4} width={MAP_WIDTH * 9} height={MAP_HEIGHT * 9} fill="transparent" onClick={clearMapSelection} />
             <Geographies geography={world as never}>
               {({ geographies }) => geographies.map((geo) => {
                 const name = String(geo.properties?.name ?? '')
                 const coordinates = geoCentroid(geo as never) as [number, number]
                 const location = locationForCountryName(name, coordinates)
                 const supported = location !== null
-                const selected = inspectedOffset === null && location?.countryCode === active.countryCode
+                const selected = mapCountrySelected && inspectedOffset === null && location?.countryCode === active.countryCode
                 const related = relatedCountries.has(name)
                 return (
                   <Geography
@@ -100,7 +107,10 @@ export function WorldMap({ now }: { now: number }) {
                     role={supported ? 'button' : undefined}
                     aria-label={supported ? `${name}. Press Enter to select.` : name}
                     className={selected ? 'country selected-country' : related ? 'country related-country' : supported ? 'country supported-country' : 'country'}
-                    onClick={() => supported && selectCountry(name, coordinates)}
+                    onClick={(event) => {
+                      event.stopPropagation()
+                      if (supported) selectCountry(name, coordinates)
+                    }}
                     onKeyDown={(event) => {
                       if (supported && (event.key === 'Enter' || event.key === ' ')) {
                         event.preventDefault()
@@ -111,7 +121,7 @@ export function WorldMap({ now }: { now: number }) {
                 )
               })}
             </Geographies>
-            {inspectedOffset === null && (active.longitude !== 0 || active.latitude !== 0) && <Marker coordinates={[active.longitude, active.latitude]}>
+            {mapCountrySelected && inspectedOffset === null && (active.longitude !== 0 || active.latitude !== 0) && <Marker coordinates={[active.longitude, active.latitude]}>
               <g className="active-marker">
                 <circle r={5} />
                 <rect x={9} y={-21} width={markerWidth} height={42} rx={4} />

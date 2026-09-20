@@ -3,27 +3,32 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from '
 import { locations, locationByTimezone } from '../data/locations'
 import { locationForTimezone } from '../data/catalog'
 import { loadPreferences, savePreferences } from '../lib/storage'
-import type { LocationRecord, SelectedTimezone, StoredPreferences, Theme, TimeFormat, WorkingHours } from '../types/timezone'
+import { MAX_SELECTED_TIMEZONES, type LocationRecord, type SelectedTimezone, type StoredPreferences, type Theme, type TimeFormat, type WorkingHours } from '../types/timezone'
 
 interface TimezoneContextValue {
   selected: SelectedTimezone[]
   active: LocationRecord
   inspectedOffset: number | null
   returnOffset: number | null
+  mapCountrySelected: boolean
   timeFormat: TimeFormat
   theme: Theme
   workingHours: WorkingHours
+  nightHours: WorkingHours
   addLocation: (location: LocationRecord) => void
   selectLocation: (location: LocationRecord) => void
   selectLocationFromOffset: (location: LocationRecord) => void
   selectOffset: (offset: number) => void
   returnToOffset: () => void
+  clearMapSelection: () => void
   removeLocation: (id: string) => void
   setHome: (id: string) => void
   reorder: (activeId: string, overId: string) => void
   move: (id: string, direction: -1 | 1) => void
   toggleTimeFormat: () => void
   cycleTheme: () => void
+  setWorkingHours: (hours: WorkingHours) => void
+  setNightHours: (hours: WorkingHours) => void
 }
 
 const TimezoneContext = createContext<TimezoneContextValue | null>(null)
@@ -44,6 +49,7 @@ function initialPreferences(): StoredPreferences {
     timeFormat: '12h',
     theme: 'system',
     workingHours: { start: 9, end: 17 },
+    nightHours: { start: 22, end: 6 },
   }
 }
 
@@ -52,6 +58,7 @@ export function TimezoneProvider({ children }: { children: ReactNode }) {
   const [inspectedLocation, setInspectedLocation] = useState<LocationRecord | null>(null)
   const [inspectedOffset, setInspectedOffset] = useState<number | null>(null)
   const [returnOffset, setReturnOffset] = useState<number | null>(null)
+  const [mapCountrySelected, setMapCountrySelected] = useState(true)
 
   useEffect(() => savePreferences(preferences), [preferences])
 
@@ -68,6 +75,7 @@ export function TimezoneProvider({ children }: { children: ReactNode }) {
     setInspectedOffset(null)
     setReturnOffset(null)
     setInspectedLocation(location)
+    setMapCountrySelected(true)
     update((current) => ({
       ...current,
       activeTimezone: location.timezone,
@@ -77,6 +85,7 @@ export function TimezoneProvider({ children }: { children: ReactNode }) {
   const inspectLocation = (location: LocationRecord) => {
     setInspectedOffset(null)
     setInspectedLocation(location)
+    setMapCountrySelected(true)
     update((current) => ({ ...current, activeTimezone: location.timezone }))
   }
 
@@ -88,7 +97,9 @@ export function TimezoneProvider({ children }: { children: ReactNode }) {
       return {
         ...current,
         activeTimezone: location.timezone,
-        selectedTimezones: exists ? current.selectedTimezones : [...current.selectedTimezones, { ...location, isHome: false }],
+        selectedTimezones: exists || current.selectedTimezones.length >= MAX_SELECTED_TIMEZONES
+          ? current.selectedTimezones
+          : [...current.selectedTimezones, { ...location, isHome: false }],
       }
     })
   }
@@ -137,25 +148,31 @@ export function TimezoneProvider({ children }: { children: ReactNode }) {
     active,
     inspectedOffset,
     returnOffset,
+    mapCountrySelected,
     timeFormat: preferences.timeFormat,
     theme: preferences.theme,
     workingHours: preferences.workingHours,
+    nightHours: preferences.nightHours,
     addLocation,
     selectLocation,
     selectLocationFromOffset: inspectLocation,
     selectOffset: (offset) => {
       setInspectedOffset(offset)
       setReturnOffset(offset)
+      setMapCountrySelected(false)
     },
     returnToOffset: () => {
       if (returnOffset !== null) setInspectedOffset(returnOffset)
     },
+    clearMapSelection: () => setMapCountrySelected(false),
     removeLocation,
     setHome,
     reorder,
     move,
     toggleTimeFormat: () => update((current) => ({ ...current, timeFormat: current.timeFormat === '12h' ? '24h' : '12h' })),
     cycleTheme: () => update((current) => ({ ...current, theme: current.theme === 'system' ? 'light' : current.theme === 'light' ? 'dark' : 'system' })),
+    setWorkingHours: (workingHours) => update((current) => ({ ...current, workingHours })),
+    setNightHours: (nightHours) => update((current) => ({ ...current, nightHours })),
   }
 
   return <TimezoneContext.Provider value={value}>{children}</TimezoneContext.Provider>

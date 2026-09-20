@@ -4,6 +4,7 @@ import { useTimezones } from '../../app/TimezoneProvider'
 import { locations } from '../../data/locations'
 import { capitalLocationForCountry, timezoneChoicesForCountry } from '../../data/catalog'
 import { describeZone, locationsForOffset, zoneDisplayNames } from '../../lib/timezone'
+import { MAX_SELECTED_TIMEZONES } from '../../types/timezone'
 
 export function TimezoneSidebar({ now }: { now: number }) {
   const { active, inspectedOffset, returnOffset, selected, addLocation, returnToOffset, selectLocation, selectLocationFromOffset } = useTimezones()
@@ -27,6 +28,7 @@ export function TimezoneSidebar({ now }: { now: number }) {
     return (query ? options.filter(({ display }) => display.searchText.includes(query)) : options).slice(0, query ? 12 : 8)
   }, [countryCities, now, timezoneChoices, timezoneQuery])
   const isAdded = selected.some((item) => item.timezone === active.timezone)
+  const comparisonFull = !isAdded && selected.length >= MAX_SELECTED_TIMEZONES
 
   if (inspectedOffset !== null) {
     const offset = inspectedOffset === 0 ? 'UTC' : `UTC${inspectedOffset > 0 ? '+' : '−'}${Math.abs(inspectedOffset)}`
@@ -60,8 +62,8 @@ export function TimezoneSidebar({ now }: { now: number }) {
       <p className="zone-title">{active.country}</p>
       <p className="zone-meta">{details.offset} now · {details.abbreviation}</p>
       {details.observesDst && <p className="zone-meta">Standard offset: {details.standardOffset}</p>}
-      <button className="add-selection" disabled={isAdded} onClick={() => addLocation(active)}>
-        {isAdded ? <Check /> : <Plus />}{isAdded ? 'Added to comparison' : 'Add to comparison'}
+      <button className="add-selection" disabled={isAdded || comparisonFull} onClick={() => addLocation(active)}>
+        {isAdded ? <Check /> : <Plus />}{isAdded ? 'Added to comparison' : comparisonFull ? 'Comparison full · 10 maximum' : 'Add to comparison'}
       </button>
       {details.observesDst && <p className="dst-note"><Sun /> Daylight saving is {details.dstActive ? 'currently in effect' : 'not currently in effect'}.</p>}
 

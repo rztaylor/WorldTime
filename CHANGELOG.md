@@ -15,6 +15,8 @@ All notable changes follow Keep a Changelog categories.
 
 ### Changed
 
+- Expanded comparisons to ten timezones in a two-row, five-column desktop grid and removed the redundant Add City placeholder card.
+- Moved time comparison into a dedicated **Compare** view with per-location, labeled hourly cells and persistent work/night ranges rendered in subtle theme-aware yellow, blue, and purple.
 - Restyled application scrollbars with slim, rounded, theme-aware tracks and thumbs.
 - Distinguished current civil offsets from geographic longitude guides, including clearer DST and standard-offset details.
 - Separated map/search/sidebar selection from the explicit **Add to comparison** action.
@@ -23,6 +25,7 @@ All notable changes follow Keep a Changelog categories.
 - Updated the map annotation to show the country prominently with the selected city beneath it.
 - Kept the desktop map/sidebar region at a stable height with internal sidebar scrolling and a concise common-timezone list.
 - Removed redundant card-strip guidance and aligned each card's UTC offset beside its timezone name.
+- Improved mobile map and comparison layouts with wrapping card rows, selection-aware card visibility, compact horizontal map overlays, an initially centred current-time schedule, and collapsible schedule controls.
 
 ### Fixed
 
@@ -32,5 +35,5 @@ All notable changes follow Keep a Changelog categories.
 - Removed the inactive country-detail chevron; offset country rows retain chevrons and drill into the selected country.
 - Selected countries now use a red fill rather than an outline, including countries outside the original curated city list such as Peru.
 - Prevented the selected-country label from blocking clicks on neighbouring countries and removed the residual SVG focus border.
-- Capped and centred timezone and Add City cards within the comparison area.
+- Capped and centred timezone cards within the comparison area.
 - Set the page-level background to prevent white borders on large displays and removed the footer.
