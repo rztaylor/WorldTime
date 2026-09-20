@@ -3,10 +3,10 @@ import { ArrowLeft, Check, ChevronRight, Plus, Search, Sun } from 'lucide-react'
 import { useTimezones } from '../../app/TimezoneProvider'
 import { locations } from '../../data/locations'
 import { timezoneChoicesForCountry } from '../../data/catalog'
-import { describeZone, zoneDisplayNames } from '../../lib/timezone'
+import { describeZone, locationsForOffset, zoneDisplayNames } from '../../lib/timezone'
 
 export function TimezoneSidebar({ now }: { now: number }) {
-  const { active, selected, addLocation, selectLocation } = useTimezones()
+  const { active, inspectedOffset, selected, addLocation, selectLocation } = useTimezones()
   const [timezoneFilter, setTimezoneFilter] = useState({ countryCode: '', query: '' })
   const timezoneQuery = timezoneFilter.countryCode === active.countryCode ? timezoneFilter.query : ''
   const details = describeZone(active, now)
@@ -23,6 +23,28 @@ export function TimezoneSidebar({ now }: { now: number }) {
   }, [countryCities, now, timezoneChoices, timezoneQuery])
   const isAdded = selected.some((item) => item.timezone === active.timezone)
 
+  if (inspectedOffset !== null) {
+    const offset = inspectedOffset === 0 ? 'UTC' : `UTC${inspectedOffset > 0 ? '+' : '−'}${Math.abs(inspectedOffset)}`
+    const matchingCountries = locationsForOffset(inspectedOffset, now)
+    return (
+      <aside className="timezone-sidebar" aria-label="Selected timezone details">
+        <button className="back-link" onClick={() => document.getElementById('global-search')?.focus()}><ArrowLeft /> All Timezones</button>
+        <div className="zone-display">{offset}</div>
+        <h1>Countries at {offset}</h1>
+        <p className="zone-title">{matchingCountries.length} countries currently share this offset.</p>
+        <p className="section-hint">Choose a country to inspect its timezone and cities.</p>
+        <section>
+          <h2>Countries</h2>
+          {matchingCountries.map((country) => (
+            <button className="list-row offset-country" key={country.countryCode} onClick={() => selectLocation(country)}>
+              <span>{country.country}</span><ChevronRight />
+            </button>
+          ))}
+        </section>
+      </aside>
+    )
+  }
+
   return (
     <aside className="timezone-sidebar" aria-label="Selected timezone details">
       <button className="back-link" onClick={() => document.getElementById('global-search')?.focus()}><ArrowLeft /> All Timezones</button>
@@ -37,9 +59,7 @@ export function TimezoneSidebar({ now }: { now: number }) {
 
       <section>
         <h2>Country</h2>
-        <button className="list-row selected" onClick={() => selectLocation(active)}>
-          <span>{active.country}</span><ChevronRight />
-        </button>
+        <div className="list-row selected"><span>{active.country}</span></div>
         {timezoneChoices.length > 1 && <p className="section-hint">This country spans {timezoneChoices.length} represented timezones. Choose or filter below.</p>}
       </section>
 

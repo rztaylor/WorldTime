@@ -8,7 +8,7 @@ import {
   countryNamesForTimezone,
   locationForCountryName,
 } from '../../data/catalog'
-import { countryNamesForOffset, locationForOffset } from '../../lib/timezone'
+import { countryNamesForOffset } from '../../lib/timezone'
 
 interface MapPosition {
   coordinates: [number, number]
@@ -16,28 +16,19 @@ interface MapPosition {
 }
 
 export function WorldMap({ now }: { now: number }) {
-  const { active, selectLocation } = useTimezones()
+  const { active, inspectedOffset, selectLocation, selectOffset } = useTimezones()
   const [position, setPosition] = useState<MapPosition>({ coordinates: [8, 10], zoom: 1 })
-  const [selectedOffset, setSelectedOffset] = useState<number | null>(null)
   const markerWidth = Math.max(96, active.country.length * 6.4 + 30, active.city.length * 5.3 + 30)
   const relatedCountries = useMemo(
-    () => selectedOffset === null
+    () => inspectedOffset === null
       ? countryNamesForTimezone(active.timezone)
-      : countryNamesForOffset(selectedOffset, now),
-    [active.timezone, now, selectedOffset],
+      : countryNamesForOffset(inspectedOffset, now),
+    [active.timezone, inspectedOffset, now],
   )
 
   const selectCountry = (name: string, coordinates: [number, number]) => {
     const location = locationForCountryName(name, coordinates)
     if (!location) return
-    setSelectedOffset(null)
-    selectLocation(location)
-  }
-
-  const selectOffset = (offset: number) => {
-    const location = locationForOffset(offset, now)
-    if (!location) return
-    setSelectedOffset(offset)
     selectLocation(location)
   }
 
@@ -47,7 +38,7 @@ export function WorldMap({ now }: { now: number }) {
         {Array.from({ length: 25 }, (_, index) => {
           const offset = index - 12
           const label = offset === 0 ? 'UTC' : `UTC${offset > 0 ? '+' : '−'}${Math.abs(offset)}`
-          return <button className={selectedOffset === offset ? 'active' : ''} key={index} onClick={() => selectOffset(offset)} aria-label={`Select ${label}`}>{offset === 0 ? 'UTC' : offset > 0 ? `+${offset}` : offset}</button>
+          return <button className={inspectedOffset === offset ? 'active' : ''} key={index} onClick={() => selectOffset(offset)} aria-label={`Select ${label}`}>{offset === 0 ? 'UTC' : offset > 0 ? `+${offset}` : offset}</button>
         })}
       </div>
       <div className="map-canvas">
@@ -68,7 +59,7 @@ export function WorldMap({ now }: { now: number }) {
                 const coordinates = geoCentroid(geo as never) as [number, number]
                 const location = locationForCountryName(name, coordinates)
                 const supported = location !== null
-                const selected = location?.countryCode === active.countryCode
+                const selected = inspectedOffset === null && location?.countryCode === active.countryCode
                 const related = relatedCountries.has(name)
                 return (
                   <Geography
@@ -89,7 +80,7 @@ export function WorldMap({ now }: { now: number }) {
                 )
               })}
             </Geographies>
-            {(active.longitude !== 0 || active.latitude !== 0) && <Marker coordinates={[active.longitude, active.latitude]}>
+            {inspectedOffset === null && (active.longitude !== 0 || active.latitude !== 0) && <Marker coordinates={[active.longitude, active.latitude]}>
               <g className="active-marker">
                 <circle r={5} />
                 <rect x={9} y={-21} width={markerWidth} height={42} rx={4} />

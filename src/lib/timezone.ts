@@ -1,5 +1,5 @@
 import { DateTime } from 'luxon'
-import { catalogTimezones, countryNamesForTimezone } from '../data/catalog'
+import { catalogCountries, catalogTimezones, countryNamesForTimezone, timezoneChoicesForCountry } from '../data/catalog'
 import { locations } from '../data/locations'
 import type { LocationRecord, TimeFormat } from '../types/timezone'
 
@@ -67,6 +67,14 @@ export function countryNamesForOffset(offset: number, timestamp: number) {
     for (const country of countryNamesForTimezone(location.timezone)) names.add(country)
   }
   return names
+}
+
+export function locationsForOffset(offset: number, timestamp: number) {
+  return catalogCountries
+    .map((country) => timezoneChoicesForCountry(country.countryCode)
+      .find((location) => zonedDateTime(timestamp, location.timezone).offset === offset * 60))
+    .filter((location): location is LocationRecord => location !== undefined)
+    .sort((a, b) => a.country.localeCompare(b.country))
 }
 
 export function locationForOffset(offset: number, timestamp: number): LocationRecord | null {

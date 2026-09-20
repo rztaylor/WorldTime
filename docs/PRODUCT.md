@@ -26,13 +26,14 @@ The main workflow is:
 2. Their saved timezone configuration is restored.
 3. A world map occupies most of the screen.
 4. Timezones are shown as subtle vertical bands.
-5. Clicking a country, city, timezone, or UTC band selects it for inspection.
-6. Information about that timezone appears in the left panel.
-7. The user explicitly chooses **Add to comparison** before a timezone card is created.
-8. Selected timezone cards may be dragged into a different order.
-9. Any timezone can be removed.
-10. One timezone can be designated as Home.
-11. The Home timezone is visually distinctive.
+5. Clicking a country, city, or timezone selects it for inspection.
+6. Clicking a UTC band highlights every country currently sharing that offset and lists those countries in the left panel.
+7. Choosing a country from an offset list drills into that country's timezone details.
+8. The user explicitly chooses **Add to comparison** before a timezone card is created.
+9. Selected timezone cards may be dragged into a different order.
+10. Any timezone can be removed.
+11. One timezone can be designated as Home.
+12. The Home timezone is visually distinctive.
 12. The user can compare overlapping working hours across all selected timezones.
 
 Selection and comparison are intentionally separate actions. Map clicks, search results,
@@ -1691,6 +1692,8 @@ The initial usable release is complete when:
 * search works for major cities, countries, and IANA timezone names
 * selection never adds a comparison card without explicit confirmation
 * UTC-band headings select the countries currently sharing that offset
+* UTC-band inspection lists every matching country and does not mark one country as selected
+* chevrons appear only on country rows that drill into further detail
 * selected countries use the red accent fill
 * offsets are labelled consistently as UTC
 * 12/24-hour format is controlled from the header

@@ -8,11 +8,13 @@ import type { LocationRecord, SelectedTimezone, StoredPreferences, Theme, TimeFo
 interface TimezoneContextValue {
   selected: SelectedTimezone[]
   active: LocationRecord
+  inspectedOffset: number | null
   timeFormat: TimeFormat
   theme: Theme
   workingHours: WorkingHours
   addLocation: (location: LocationRecord) => void
   selectLocation: (location: LocationRecord) => void
+  selectOffset: (offset: number) => void
   removeLocation: (id: string) => void
   setHome: (id: string) => void
   reorder: (activeId: string, overId: string) => void
@@ -45,6 +47,7 @@ function initialPreferences(): StoredPreferences {
 export function TimezoneProvider({ children }: { children: ReactNode }) {
   const [preferences, setPreferences] = useState(initialPreferences)
   const [inspectedLocation, setInspectedLocation] = useState<LocationRecord | null>(null)
+  const [inspectedOffset, setInspectedOffset] = useState<number | null>(null)
 
   useEffect(() => savePreferences(preferences), [preferences])
 
@@ -58,6 +61,7 @@ export function TimezoneProvider({ children }: { children: ReactNode }) {
   const update = (change: (current: StoredPreferences) => StoredPreferences) => setPreferences(change)
 
   const selectLocation = (location: LocationRecord) => {
+    setInspectedOffset(null)
     setInspectedLocation(location)
     update((current) => ({
       ...current,
@@ -66,6 +70,7 @@ export function TimezoneProvider({ children }: { children: ReactNode }) {
   }
 
   const addLocation = (location: LocationRecord) => {
+    setInspectedOffset(null)
     setInspectedLocation(location)
     update((current) => {
       const exists = current.selectedTimezones.some(({ timezone }) => timezone === location.timezone)
@@ -119,11 +124,13 @@ export function TimezoneProvider({ children }: { children: ReactNode }) {
   const value: TimezoneContextValue = {
     selected: preferences.selectedTimezones,
     active,
+    inspectedOffset,
     timeFormat: preferences.timeFormat,
     theme: preferences.theme,
     workingHours: preferences.workingHours,
     addLocation,
     selectLocation,
+    selectOffset: (offset) => setInspectedOffset(offset),
     removeLocation,
     setHome,
     reorder,

@@ -17,14 +17,25 @@ test('search selects a timezone and only adds it after confirmation', async ({ p
   await expect(page.getByRole('article').filter({ hasText: 'Tokyo' })).toBeVisible()
 })
 
-test('map countries and UTC bands update the sidebar without adding cards', async ({ page }) => {
+test('map countries and UTC bands update the sidebar without adding cards', async ({ page }, testInfo) => {
   await page.getByRole('button', { name: /Peru\. Press Enter to select/ }).click()
   await expect(page.getByText('America / Lima').first()).toBeVisible()
   await expect(page.getByText('Peru').first()).toBeVisible()
   await expect(page.getByRole('article')).toHaveCount(1)
-  await page.getByRole('button', { name: /Select UTC.*5$/ }).first().click()
-  await expect(page.getByRole('button', { name: 'Add to comparison' })).toBeVisible()
+  await expect(page.locator('.timezone-sidebar section').first().locator('.list-row svg')).toHaveCount(0)
+
+  await page.getByRole('button', { name: 'Select UTC', exact: true }).click()
+  await expect(page.getByRole('heading', { name: 'Countries at UTC' })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Ghana', exact: true })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Iceland', exact: true })).toBeVisible()
+  await expect(page.locator('.selected-country')).toHaveCount(0)
+  expect(await page.locator('.related-country').count()).toBeGreaterThan(1)
   await expect(page.getByRole('article')).toHaveCount(1)
+  await page.screenshot({ path: testInfo.outputPath('utc-band-countries.png'), fullPage: true })
+
+  await page.getByRole('button', { name: 'Ghana', exact: true }).click()
+  await expect(page.getByText('Africa / Abidjan').first()).toBeVisible()
+  await expect(page.locator('.selected-country')).toHaveCount(1)
 })
 
 test('country marker does not block selecting a neighbouring country', async ({ page }) => {
