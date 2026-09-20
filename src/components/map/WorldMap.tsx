@@ -19,6 +19,7 @@ export function WorldMap({ now }: { now: number }) {
   const { active, selectLocation } = useTimezones()
   const [position, setPosition] = useState<MapPosition>({ coordinates: [8, 10], zoom: 1 })
   const [selectedOffset, setSelectedOffset] = useState<number | null>(null)
+  const markerWidth = Math.max(96, active.country.length * 6.4 + 30, active.city.length * 5.3 + 30)
   const relatedCountries = useMemo(
     () => selectedOffset === null
       ? countryNamesForTimezone(active.timezone)
@@ -91,8 +92,9 @@ export function WorldMap({ now }: { now: number }) {
             {(active.longitude !== 0 || active.latitude !== 0) && <Marker coordinates={[active.longitude, active.latitude]}>
               <g className="active-marker">
                 <circle r={5} />
-                <rect x={9} y={-15} width={Math.max(72, active.city.length * 8 + 28)} height={30} rx={4} />
-                <text x={23} y={4}>{active.city}</text>
+                <rect x={9} y={-21} width={markerWidth} height={42} rx={4} />
+                <text className="marker-country" x={23} y={-3}>{active.country}</text>
+                <text className="marker-city" x={23} y={11}>{active.city}</text>
                 <circle cx={16} cy={0} r={3} className="marker-dot" />
               </g>
             </Marker>}

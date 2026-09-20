@@ -16,6 +16,7 @@ All notable changes follow Keep a Changelog categories.
 - Separated map/search/sidebar selection from the explicit **Add to comparison** action.
 - Tightened the overall layout and timezone cards, moved the 12/24-hour control into the header, and extended the card strip beneath the sidebar.
 - Standardized user-facing offsets on UTC and simplified Home cards to an icon beside the city name.
+- Updated the map annotation to show the country prominently with the selected city beneath it.
 
 ### Fixed
 

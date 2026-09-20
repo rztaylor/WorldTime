@@ -116,7 +116,9 @@ nav a.active::after { content: ""; position: absolute; height: 3px; background: 
 .active-marker { pointer-events: none; }
 .active-marker rect { fill: var(--ink); stroke: var(--canvas); stroke-width: .7; }
 .active-marker > circle:first-child { fill: var(--canvas); stroke: var(--ink); stroke-width: 3; }
-.active-marker text { fill: var(--canvas); font-size: 10px; font-weight: 700; }
+.active-marker text { fill: var(--canvas); }
+.active-marker .marker-country { font-size: 10px; font-weight: 800; }
+.active-marker .marker-city { fill: color-mix(in srgb, var(--canvas) 70%, transparent); font-size: 8px; font-weight: 500; }
 .active-marker .marker-dot { fill: var(--canvas); }
 .map-controls { position: absolute; z-index: 2; right: 14px; top: 52px; display: flex; flex-direction: column; overflow: hidden; border: 1px solid var(--line); border-radius: var(--radius); box-shadow: 0 4px 12px rgb(0 0 0 / .07); }
 .map-controls button { width: 40px; height: 40px; display: grid; place-items: center; border: 0; border-bottom: 1px solid var(--line); background: var(--canvas); cursor: pointer; }

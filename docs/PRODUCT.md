@@ -484,8 +484,10 @@ Selected country may display a floating label:
 
 ```text
 ● Germany
+  Berlin
 ```
 
+The country is the prominent first line and the city is a smaller, lower-contrast second line.
 Avoid oversized popup balloons.
 Do not draw a focus rectangle or selection border around a country; the red fill is the
 complete visual selection treatment. Labels and markers must not intercept country clicks.
