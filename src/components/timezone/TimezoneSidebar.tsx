@@ -1,16 +1,26 @@
-import { ArrowLeft, Check, ChevronRight, Plus, Sun } from 'lucide-react'
+import { useMemo, useState } from 'react'
+import { ArrowLeft, Check, ChevronRight, Plus, Search, Sun } from 'lucide-react'
 import { useTimezones } from '../../app/TimezoneProvider'
-import { countries, locations } from '../../data/locations'
+import { locations } from '../../data/locations'
 import { timezoneChoicesForCountry } from '../../data/catalog'
-import { describeZone } from '../../lib/timezone'
+import { describeZone, zoneDisplayNames } from '../../lib/timezone'
 
 export function TimezoneSidebar({ now }: { now: number }) {
   const { active, selected, addLocation, selectLocation } = useTimezones()
+  const [timezoneFilter, setTimezoneFilter] = useState({ countryCode: '', query: '' })
+  const timezoneQuery = timezoneFilter.countryCode === active.countryCode ? timezoneFilter.query : ''
   const details = describeZone(active, now)
-  const country = countries.find((item) => item.code === active.countryCode)
   const sameZone = locations.filter((item) => item.timezone === active.timezone)
   const countryCities = locations.filter((item) => item.countryCode === active.countryCode)
   const timezoneChoices = timezoneChoicesForCountry(active.countryCode)
+  const timezoneOptions = useMemo(() => {
+    const preferred = new Map(countryCities.map((city, index) => [city.timezone, index]))
+    const options = timezoneChoices
+      .map((choice) => ({ choice, display: zoneDisplayNames(choice.timezone, now) }))
+      .sort((a, b) => (preferred.get(a.choice.timezone) ?? 100) - (preferred.get(b.choice.timezone) ?? 100) || a.choice.timezone.localeCompare(b.choice.timezone))
+    const query = timezoneQuery.trim().toLocaleLowerCase()
+    return (query ? options.filter(({ display }) => display.searchText.includes(query)) : options).slice(0, query ? 12 : 8)
+  }, [countryCities, now, timezoneChoices, timezoneQuery])
   const isAdded = selected.some((item) => item.timezone === active.timezone)
 
   return (
@@ -30,16 +40,19 @@ export function TimezoneSidebar({ now }: { now: number }) {
         <button className="list-row selected" onClick={() => selectLocation(active)}>
           <span>{active.country}</span><ChevronRight />
         </button>
-        {country && country.timezones.length > 1 && <p className="section-hint">This country spans {country.timezones.length} represented timezones. Choose a city below.</p>}
+        {timezoneChoices.length > 1 && <p className="section-hint">This country spans {timezoneChoices.length} represented timezones. Choose or filter below.</p>}
       </section>
 
       {timezoneChoices.length > 1 && <section>
         <h2>Available timezones</h2>
-        {timezoneChoices.map((choice) => (
-          <button className={`list-row ${choice.timezone === active.timezone ? 'selected' : ''}`} key={choice.timezone} onClick={() => selectLocation(choice)}>
-            <span>{choice.timezone.replaceAll('_', ' ')}</span><small>{describeZone(choice, now).offset}</small>
+        <label className="timezone-filter"><Search /><span className="sr-only">Filter timezones</span><input value={timezoneQuery} onChange={(event) => setTimezoneFilter({ countryCode: active.countryCode, query: event.target.value })} placeholder="PST, Eastern, Los Angeles…" /></label>
+        {timezoneOptions.map(({ choice, display }) => (
+          <button className={`list-row timezone-option ${choice.timezone === active.timezone ? 'selected' : ''}`} key={choice.timezone} onClick={() => selectLocation(choice)}>
+            <span className="timezone-row-copy"><strong>{choice.timezone.replaceAll('_', ' ')}</strong><small>{display.abbreviations.join(' / ')} · {display.currentName}</small></span><small>{describeZone(choice, now).offset}</small>
           </button>
         ))}
+        {!timezoneOptions.length && <p className="section-hint">No matching timezones.</p>}
+        {!timezoneQuery && timezoneChoices.length > timezoneOptions.length && <p className="section-hint">Showing common timezones. Search all {timezoneChoices.length}.</p>}
       </section>}
 
       {(countryCities.length > 0 || sameZone.length > 1) && <section>

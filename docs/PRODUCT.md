@@ -921,6 +921,11 @@ Anchorage
 Honolulu
 ```
 
+Keep the desktop map/sidebar row at a stable height and scroll the sidebar internally.
+Show a short list of common timezones first, with a filter that searches IANA names,
+current and seasonal abbreviations (`PST`, `EDT`), and long names (`Eastern`). Each
+result shows the IANA name, abbreviations, current long name, and UTC offset.
+
 For smaller countries with one timezone, add immediately.
 
 ---

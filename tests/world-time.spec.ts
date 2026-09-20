@@ -35,6 +35,15 @@ test('country marker does not block selecting a neighbouring country', async ({ 
   await expect(page.getByText('Africa / Abidjan').first()).toBeVisible()
 })
 
+test('large countries keep a scrollable, searchable timezone list', async ({ page }, testInfo) => {
+  await page.getByRole('button', { name: /United States of America\. Press Enter to select/ }).click()
+  const sidebar = page.getByRole('complementary', { name: 'Selected timezone details' })
+  expect(await sidebar.evaluate((element) => element.scrollHeight > element.clientHeight)).toBe(true)
+  await page.getByRole('textbox', { name: 'Filter timezones' }).fill('PST')
+  await expect(page.getByRole('button', { name: /America\/Los Angeles.*PDT.*PST/i })).toBeVisible()
+  await page.screenshot({ path: testInfo.outputPath('filtered-timezones.png'), fullPage: true })
+})
+
 test('renders the responsive comparison experience', async ({ page }, testInfo) => {
   await expect(page.getByRole('img', { name: /world map/i })).toBeVisible()
   await expect(page.getByRole('heading', { name: 'Overlap Hours' })).toBeVisible()

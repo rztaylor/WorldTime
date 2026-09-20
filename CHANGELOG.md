@@ -10,6 +10,7 @@ All notable changes follow Keep a Changelog categories.
 - Responsive monochrome interface based on the approved editorial design reference.
 - Production hosting through ChatGPT Sites at `tz.rztaylor.chatgpt.site`.
 - Full country and IANA timezone search coverage, including UTC-band selection.
+- Searchable multi-timezone country lists using IANA names, seasonal abbreviations, and long timezone names.
 
 ### Changed
 
@@ -17,6 +18,7 @@ All notable changes follow Keep a Changelog categories.
 - Tightened the overall layout and timezone cards, moved the 12/24-hour control into the header, and extended the card strip beneath the sidebar.
 - Standardized user-facing offsets on UTC and simplified Home cards to an icon beside the city name.
 - Updated the map annotation to show the country prominently with the selected city beneath it.
+- Kept the desktop map/sidebar region at a stable height with internal sidebar scrolling and a concise common-timezone list.
 
 ### Fixed
 

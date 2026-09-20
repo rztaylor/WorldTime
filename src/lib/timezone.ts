@@ -48,6 +48,18 @@ export const describeZone = (location: LocationRecord, timestamp: number) => {
   }
 }
 
+export const zoneDisplayNames = (timezone: string, timestamp: number) => {
+  const current = zonedDateTime(timestamp, timezone).setLocale('en-US')
+  const seasonal = [1, 7].map((month) => DateTime.fromObject({ year: current.year, month, day: 15 }, { zone: timezone }).setLocale('en-US'))
+  const abbreviations = [...new Set([current, ...seasonal].map((time) => time.offsetNameShort).filter(Boolean))] as string[]
+  const names = [...new Set([current, ...seasonal].map((time) => time.offsetNameLong).filter(Boolean))] as string[]
+  return {
+    abbreviations,
+    currentName: current.offsetNameLong ?? timezone,
+    searchText: [timezone, ...abbreviations, ...names].join(' ').toLocaleLowerCase(),
+  }
+}
+
 export function countryNamesForOffset(offset: number, timestamp: number) {
   const names = new Set<string>()
   for (const location of catalogTimezones) {
