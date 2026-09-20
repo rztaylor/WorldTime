@@ -15,6 +15,7 @@ All notable changes follow Keep a Changelog categories.
 
 ### Changed
 
+- Restyled application scrollbars with slim, rounded, theme-aware tracks and thumbs.
 - Distinguished current civil offsets from geographic longitude guides, including clearer DST and standard-offset details.
 - Separated map/search/sidebar selection from the explicit **Add to comparison** action.
 - Tightened the overall layout and timezone cards, moved the 12/24-hour control into the header, and placed the compact card strip beneath the map while the sidebar spans the full workspace height.
