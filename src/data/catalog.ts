@@ -5,6 +5,7 @@ import {
   getCountry,
   type Country,
 } from 'countries-and-timezones'
+import { countries as countryDetails } from 'countries-list'
 import { locationByTimezone, locations } from './locations'
 import type { LocationRecord } from '../types/timezone'
 
@@ -76,6 +77,25 @@ export function timezoneChoicesForCountry(countryCode: string): LocationRecord[]
   const country = getCountry(countryCode)
   if (!country) return []
   return country.timezones.map((timezone) => recordForCountry(country, timezone))
+}
+
+export function capitalLocationForCountry(countryCode: string, fallbackTimezone: string): LocationRecord | null {
+  const country = getCountry(countryCode)
+  const capital = countryDetails[countryCode as keyof typeof countryDetails]?.capital
+  if (!country || !capital) return null
+  const normalizedCapital = normalize(capital).replace(/[^a-z0-9]/g, '')
+  const timezone = country.timezones.find((candidate) => {
+    const place = candidate.split('/').at(-1)?.replaceAll('_', ' ') ?? ''
+    return normalize(place).replace(/[^a-z0-9]/g, '') === normalizedCapital
+  }) ?? fallbackTimezone
+  const base = recordForCountry(country, timezone)
+  return {
+    ...base,
+    id: `${country.id.toLocaleLowerCase()}-capital-${normalize(capital).replace(/[^a-z0-9]+/g, '-')}`,
+    city: capital,
+    longitude: 0,
+    latitude: 0,
+  }
 }
 
 export function countryNamesForTimezone(timezone: string) {

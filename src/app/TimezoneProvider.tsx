@@ -9,12 +9,15 @@ interface TimezoneContextValue {
   selected: SelectedTimezone[]
   active: LocationRecord
   inspectedOffset: number | null
+  returnOffset: number | null
   timeFormat: TimeFormat
   theme: Theme
   workingHours: WorkingHours
   addLocation: (location: LocationRecord) => void
   selectLocation: (location: LocationRecord) => void
+  selectLocationFromOffset: (location: LocationRecord) => void
   selectOffset: (offset: number) => void
+  returnToOffset: () => void
   removeLocation: (id: string) => void
   setHome: (id: string) => void
   reorder: (activeId: string, overId: string) => void
@@ -48,6 +51,7 @@ export function TimezoneProvider({ children }: { children: ReactNode }) {
   const [preferences, setPreferences] = useState(initialPreferences)
   const [inspectedLocation, setInspectedLocation] = useState<LocationRecord | null>(null)
   const [inspectedOffset, setInspectedOffset] = useState<number | null>(null)
+  const [returnOffset, setReturnOffset] = useState<number | null>(null)
 
   useEffect(() => savePreferences(preferences), [preferences])
 
@@ -62,11 +66,18 @@ export function TimezoneProvider({ children }: { children: ReactNode }) {
 
   const selectLocation = (location: LocationRecord) => {
     setInspectedOffset(null)
+    setReturnOffset(null)
     setInspectedLocation(location)
     update((current) => ({
       ...current,
       activeTimezone: location.timezone,
     }))
+  }
+
+  const inspectLocation = (location: LocationRecord) => {
+    setInspectedOffset(null)
+    setInspectedLocation(location)
+    update((current) => ({ ...current, activeTimezone: location.timezone }))
   }
 
   const addLocation = (location: LocationRecord) => {
@@ -125,12 +136,20 @@ export function TimezoneProvider({ children }: { children: ReactNode }) {
     selected: preferences.selectedTimezones,
     active,
     inspectedOffset,
+    returnOffset,
     timeFormat: preferences.timeFormat,
     theme: preferences.theme,
     workingHours: preferences.workingHours,
     addLocation,
     selectLocation,
-    selectOffset: (offset) => setInspectedOffset(offset),
+    selectLocationFromOffset: inspectLocation,
+    selectOffset: (offset) => {
+      setInspectedOffset(offset)
+      setReturnOffset(offset)
+    },
+    returnToOffset: () => {
+      if (returnOffset !== null) setInspectedOffset(returnOffset)
+    },
     removeLocation,
     setHome,
     reorder,

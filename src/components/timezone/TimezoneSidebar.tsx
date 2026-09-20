@@ -2,16 +2,21 @@ import { useMemo, useState } from 'react'
 import { ArrowLeft, Check, ChevronRight, Plus, Search, Sun } from 'lucide-react'
 import { useTimezones } from '../../app/TimezoneProvider'
 import { locations } from '../../data/locations'
-import { timezoneChoicesForCountry } from '../../data/catalog'
+import { capitalLocationForCountry, timezoneChoicesForCountry } from '../../data/catalog'
 import { describeZone, locationsForOffset, zoneDisplayNames } from '../../lib/timezone'
 
 export function TimezoneSidebar({ now }: { now: number }) {
-  const { active, inspectedOffset, selected, addLocation, selectLocation } = useTimezones()
+  const { active, inspectedOffset, returnOffset, selected, addLocation, returnToOffset, selectLocation, selectLocationFromOffset } = useTimezones()
   const [timezoneFilter, setTimezoneFilter] = useState({ countryCode: '', query: '' })
   const timezoneQuery = timezoneFilter.countryCode === active.countryCode ? timezoneFilter.query : ''
   const details = describeZone(active, now)
   const sameZone = locations.filter((item) => item.timezone === active.timezone)
   const countryCities = locations.filter((item) => item.countryCode === active.countryCode)
+  const capital = capitalLocationForCountry(active.countryCode, active.timezone)
+  const cities = capital && !countryCities.some((city) => city.city.toLocaleLowerCase() === capital.city.toLocaleLowerCase())
+    ? [capital, ...countryCities]
+    : countryCities
+  const selectDrilldown = returnOffset === null ? selectLocation : selectLocationFromOffset
   const timezoneChoices = timezoneChoicesForCountry(active.countryCode)
   const timezoneOptions = useMemo(() => {
     const preferred = new Map(countryCities.map((city, index) => [city.timezone, index]))
@@ -36,7 +41,7 @@ export function TimezoneSidebar({ now }: { now: number }) {
         <section>
           <h2>Countries</h2>
           {matchingCountries.map((country) => (
-            <button className="list-row offset-country" key={country.countryCode} onClick={() => selectLocation(country)}>
+            <button className="list-row offset-country" key={country.countryCode} onClick={() => selectLocationFromOffset(country)}>
               <span>{country.country}</span><ChevronRight />
             </button>
           ))}
@@ -47,7 +52,9 @@ export function TimezoneSidebar({ now }: { now: number }) {
 
   return (
     <aside className="timezone-sidebar" aria-label="Selected timezone details">
-      <button className="back-link" onClick={() => document.getElementById('global-search')?.focus()}><ArrowLeft /> All Timezones</button>
+      <button className="back-link" onClick={() => returnOffset === null ? document.getElementById('global-search')?.focus() : returnToOffset()}>
+        <ArrowLeft /> {returnOffset === null ? 'All Timezones' : `Back to ${returnOffset === 0 ? 'UTC' : `UTC${returnOffset > 0 ? '+' : '−'}${Math.abs(returnOffset)}`}`}
+      </button>
       <div className="zone-display">{active.timezone.replaceAll('_', ' ').replace('/', ' / ')}</div>
       <h1>{active.city}</h1>
       <p className="zone-title">{active.country}</p>
@@ -58,17 +65,12 @@ export function TimezoneSidebar({ now }: { now: number }) {
       </button>
       {details.observesDst && <p className="dst-note"><Sun /> Daylight saving is {details.dstActive ? 'currently in effect' : 'not currently in effect'}.</p>}
 
-      <section>
-        <h2>Country</h2>
-        <div className="list-row selected"><span>{active.country}</span></div>
-        {timezoneChoices.length > 1 && <p className="section-hint">This country spans {timezoneChoices.length} represented timezones. Choose or filter below.</p>}
-      </section>
-
       {timezoneChoices.length > 1 && <section>
         <h2>Available timezones</h2>
+        <p className="section-hint">This country spans {timezoneChoices.length} represented timezones. Choose or filter below.</p>
         <label className="timezone-filter"><Search /><span className="sr-only">Filter timezones</span><input value={timezoneQuery} onChange={(event) => setTimezoneFilter({ countryCode: active.countryCode, query: event.target.value })} placeholder="PST, Eastern, Los Angeles…" /></label>
         {timezoneOptions.map(({ choice, display }) => (
-          <button className={`list-row timezone-option ${choice.timezone === active.timezone ? 'selected' : ''}`} key={choice.timezone} onClick={() => selectLocation(choice)}>
+          <button className={`list-row timezone-option ${choice.timezone === active.timezone ? 'selected' : ''}`} key={choice.timezone} onClick={() => selectDrilldown(choice)}>
             <span className="timezone-row-copy"><strong>{choice.timezone.replaceAll('_', ' ')}</strong><small>{display.abbreviations.join(' / ')} · {display.currentName}</small></span><small>{describeZone(choice, now).offset}</small>
           </button>
         ))}
@@ -76,11 +78,11 @@ export function TimezoneSidebar({ now }: { now: number }) {
         {!timezoneQuery && timezoneChoices.length > timezoneOptions.length && <p className="section-hint">Showing common timezones. Search all {timezoneChoices.length}.</p>}
       </section>}
 
-      {(countryCities.length > 0 || sameZone.length > 1) && <section>
-        <h2>Major cities</h2>
-        {(countryCities.length ? countryCities : sameZone).map((city) => (
-          <button className={`list-row ${city.timezone === active.timezone ? 'selected' : ''}`} key={city.id} onClick={() => selectLocation(city)}>
-            <span>{city.city}</span><small>{describeZone(city, now).offset}</small>
+      {(cities.length > 0 || sameZone.length > 1) && <section>
+        <h2>Cities</h2>
+        {(cities.length ? cities : sameZone).map((city) => (
+          <button className={`list-row ${city.id === active.id ? 'selected' : ''}`} key={city.id} onClick={() => selectDrilldown(city)}>
+            <span className="city-name">{city.city}{capital?.id === city.id && <em>Capital</em>}</span><small>{describeZone(city, now).offset}</small>
           </button>
         ))}
       </section>}

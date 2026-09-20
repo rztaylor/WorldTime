@@ -11,6 +11,7 @@ All notable changes follow Keep a Changelog categories.
 - Production hosting through ChatGPT Sites at `tz.rztaylor.chatgpt.site`.
 - Full country and IANA timezone search coverage, including UTC-band selection.
 - Searchable multi-timezone country lists using IANA names, seasonal abbreviations, and long timezone names.
+- Static capital-city fallbacks so every country has a city available for inspection.
 
 ### Changed
 
@@ -24,6 +25,7 @@ All notable changes follow Keep a Changelog categories.
 
 ### Fixed
 
+- Country drilldowns now return to their originating UTC-offset list, and country details no longer repeat the country name in a redundant section.
 - Kept UTC offset headings and vertical bands aligned with the map while panning and zooming.
 - UTC-band selection now shades and lists every country currently sharing the offset instead of selecting an arbitrary country.
 - Removed the inactive country-detail chevron; offset country rows retain chevrons and drill into the selected country.
