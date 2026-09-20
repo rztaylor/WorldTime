@@ -437,6 +437,9 @@ The initial map should show longitude-aligned timezone bands approximately as:
 These bands are visual guidance rather than authoritative timezone boundaries.
 Their labels and vertical grid must share the map's horizontal pan and zoom transform,
 so the geography cannot move out of alignment with the displayed offsets.
+The offset controls are explicitly labelled as current offsets including daylight saving.
+The longitude grid uses lines only—not shaded columns—so it reads as geographic guidance
+rather than a claim that countries physically inside a column use that civil offset.
 
 Actual timezone assignment must come from timezone data.
 
@@ -1696,6 +1699,7 @@ The initial usable release is complete when:
 * UTC-band headings select the countries currently sharing that offset
 * UTC-band inspection lists every matching country and does not mark one country as selected
 * chevrons appear only on country rows that drill into further detail
+* DST-observing locations show both their current abbreviation/offset and standard offset
 * selected countries use the red accent fill
 * offsets are labelled consistently as UTC
 * 12/24-hour format is controlled from the header

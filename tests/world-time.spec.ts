@@ -105,6 +105,9 @@ test('desktop workspace keeps cards beneath the map and the sidebar alongside th
 })
 
 test('renders the responsive comparison experience', async ({ page }, testInfo) => {
+  await expect(page.getByText('Current offsets · includes daylight saving')).toBeVisible()
+  await expect(page.getByText(/UTC\+1 now/)).toBeVisible()
+  await expect(page.getByText('Standard offset: UTC')).toBeVisible()
   await expect(page.getByRole('img', { name: /world map/i })).toBeVisible()
   await expect(page.getByRole('heading', { name: 'Overlap Hours' })).toBeVisible()
   await page.screenshot({ path: testInfo.outputPath('world-time.png'), fullPage: true })

@@ -32,7 +32,7 @@ export function TimezoneSidebar({ now }: { now: number }) {
         <div className="zone-display">{offset}</div>
         <h1>Countries at {offset}</h1>
         <p className="zone-title">{matchingCountries.length} countries currently share this offset.</p>
-        <p className="section-hint">Choose a country to inspect its timezone and cities.</p>
+        <p className="section-hint">Current offset, including daylight saving changes. Choose a country to inspect its timezone and cities.</p>
         <section>
           <h2>Countries</h2>
           {matchingCountries.map((country) => (
@@ -51,7 +51,8 @@ export function TimezoneSidebar({ now }: { now: number }) {
       <div className="zone-display">{active.timezone.replaceAll('_', ' ').replace('/', ' / ')}</div>
       <h1>{active.city}</h1>
       <p className="zone-title">{active.country}</p>
-      <p className="zone-meta">{details.offset}</p>
+      <p className="zone-meta">{details.offset} now · {details.abbreviation}</p>
+      {details.observesDst && <p className="zone-meta">Standard offset: {details.standardOffset}</p>}
       <button className="add-selection" disabled={isAdded} onClick={() => addLocation(active)}>
         {isAdded ? <Check /> : <Plus />}{isAdded ? 'Added to comparison' : 'Add to comparison'}
       </button>

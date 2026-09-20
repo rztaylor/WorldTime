@@ -58,6 +58,7 @@ export function WorldMap({ now }: { now: number }) {
   return (
     <section id="map" className="map-panel" aria-label="Interactive world timezone map">
       <div className="timezone-bands" aria-label="Select a UTC offset">
+        <span className="offset-rail-label">Current offsets · includes daylight saving</span>
         {Array.from({ length: BAND_COUNT }, (_, index) => {
           const offset = index - 12
           const label = offset === 0 ? 'UTC' : `UTC${offset > 0 ? '+' : '−'}${Math.abs(offset)}`

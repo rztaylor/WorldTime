@@ -16,8 +16,7 @@ export const formatClockParts = (timestamp: number, timezone: string, format: Ti
     : { time: time.toFormat('HH:mm'), period: '' }
 }
 
-export const offsetLabel = (timestamp: number, timezone: string) => {
-  const minutes = zonedDateTime(timestamp, timezone).offset
+const offsetLabelForMinutes = (minutes: number) => {
   if (minutes === 0) return 'UTC'
   const sign = minutes > 0 ? '+' : '−'
   const absolute = Math.abs(minutes)
@@ -25,6 +24,9 @@ export const offsetLabel = (timestamp: number, timezone: string) => {
   const remainder = absolute % 60
   return `UTC${sign}${hours}${remainder ? `:${String(remainder).padStart(2, '0')}` : ''}`
 }
+
+export const offsetLabel = (timestamp: number, timezone: string) =>
+  offsetLabelForMinutes(zonedDateTime(timestamp, timezone).offset)
 
 export const zoneName = (timestamp: number, timezone: string) =>
   zonedDateTime(timestamp, timezone).offsetNameShort ?? timezone
@@ -42,6 +44,7 @@ export const describeZone = (location: LocationRecord, timestamp: number) => {
   const julyOffset = DateTime.fromObject({ year: current.year, month: 7, day: 15 }, { zone: location.timezone }).offset
   return {
     offset: offsetLabel(timestamp, location.timezone),
+    standardOffset: offsetLabelForMinutes(Math.min(januaryOffset, julyOffset)),
     abbreviation: zoneName(timestamp, location.timezone),
     observesDst: januaryOffset !== julyOffset,
     dstActive: current.isInDST,
