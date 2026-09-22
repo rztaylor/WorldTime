@@ -26,9 +26,12 @@ All notable changes follow Keep a Changelog categories.
 - Kept the desktop map/sidebar region at a stable height with internal sidebar scrolling and a concise common-timezone list.
 - Removed redundant card-strip guidance and aligned each card's UTC offset beside its timezone name.
 - Improved mobile map and comparison layouts with wrapping card rows, selection-aware card visibility, compact horizontal map overlays, an initially centred current-time schedule, and collapsible schedule controls.
+- Made Compare-row local times twice as large, replaced the Home text badge with a home icon, unified 12/24-hour cell typography, and labelled every hour whose weekday differs from Home.
 
 ### Fixed
 
+- Removed GMT-derived offset labels from the interface so UTC is the sole displayed offset standard.
+- Timezone-card selection now consistently shows the country label on the map, including catalogue locations without stored coordinates, and the redundant country marker has been removed.
 - Country drilldowns now return to their originating UTC-offset list, and country details no longer repeat the country name in a redundant section.
 - Kept UTC offset headings and vertical bands aligned with the map while panning and zooming.
 - UTC-band selection now shades and lists every country currently sharing the offset instead of selecting an arbitrary country.

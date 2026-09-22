@@ -92,44 +92,54 @@ export function WorldMap({ now }: { now: number }) {
           >
             <rect className="map-background" x={-MAP_WIDTH * 4} y={-MAP_HEIGHT * 4} width={MAP_WIDTH * 9} height={MAP_HEIGHT * 9} fill="transparent" onClick={clearMapSelection} />
             <Geographies geography={world as never}>
-              {({ geographies }) => geographies.map((geo) => {
-                const name = String(geo.properties?.name ?? '')
-                const coordinates = geoCentroid(geo as never) as [number, number]
-                const location = locationForCountryName(name, coordinates)
-                const supported = location !== null
-                const selected = mapCountrySelected && inspectedOffset === null && location?.countryCode === active.countryCode
-                const related = relatedCountries.has(name)
-                return (
-                  <Geography
-                    key={geo.rsmKey}
-                    geography={geo}
-                    tabIndex={supported ? 0 : -1}
-                    role={supported ? 'button' : undefined}
-                    aria-label={supported ? `${name}. Press Enter to select.` : name}
-                    className={selected ? 'country selected-country' : related ? 'country related-country' : supported ? 'country supported-country' : 'country'}
-                    onClick={(event) => {
-                      event.stopPropagation()
-                      if (supported) selectCountry(name, coordinates)
-                    }}
-                    onKeyDown={(event) => {
-                      if (supported && (event.key === 'Enter' || event.key === ' ')) {
-                        event.preventDefault()
-                        selectCountry(name, coordinates)
-                      }
-                    }}
-                  />
-                )
-              })}
+              {({ geographies }) => {
+                const selectedGeography = mapCountrySelected && inspectedOffset === null
+                  ? geographies.find((geo) => {
+                      const name = String(geo.properties?.name ?? '')
+                      return locationForCountryName(name, geoCentroid(geo as never) as [number, number])?.countryCode === active.countryCode
+                    })
+                  : undefined
+
+                return <>
+                  {geographies.map((geo) => {
+                    const name = String(geo.properties?.name ?? '')
+                    const coordinates = geoCentroid(geo as never) as [number, number]
+                    const location = locationForCountryName(name, coordinates)
+                    const supported = location !== null
+                    const selected = mapCountrySelected && inspectedOffset === null && location?.countryCode === active.countryCode
+                    const related = relatedCountries.has(name)
+                    return (
+                      <Geography
+                        key={geo.rsmKey}
+                        geography={geo}
+                        tabIndex={supported ? 0 : -1}
+                        role={supported ? 'button' : undefined}
+                        aria-label={supported ? `${name}. Press Enter to select.` : name}
+                        className={selected ? 'country selected-country' : related ? 'country related-country' : supported ? 'country supported-country' : 'country'}
+                        onClick={(event) => {
+                          event.stopPropagation()
+                          if (supported) selectCountry(name, coordinates)
+                        }}
+                        onKeyDown={(event) => {
+                          if (supported && (event.key === 'Enter' || event.key === ' ')) {
+                            event.preventDefault()
+                            selectCountry(name, coordinates)
+                          }
+                        }}
+                      />
+                    )
+                  })}
+                  {selectedGeography && <Marker coordinates={geoCentroid(selectedGeography as never) as [number, number]}>
+                    <g className="active-marker">
+                      <rect x={9} y={-21} width={markerWidth} height={42} rx={4} />
+                      <text className="marker-country" x={23} y={-3}>{active.country}</text>
+                      <text className="marker-city" x={23} y={11}>{active.city}</text>
+                      <circle cx={16} cy={0} r={3} className="marker-dot" />
+                    </g>
+                  </Marker>}
+                </>
+              }}
             </Geographies>
-            {mapCountrySelected && inspectedOffset === null && (active.longitude !== 0 || active.latitude !== 0) && <Marker coordinates={[active.longitude, active.latitude]}>
-              <g className="active-marker">
-                <circle r={5} />
-                <rect x={9} y={-21} width={markerWidth} height={42} rx={4} />
-                <text className="marker-country" x={23} y={-3}>{active.country}</text>
-                <text className="marker-city" x={23} y={11}>{active.city}</text>
-                <circle cx={16} cy={0} r={3} className="marker-dot" />
-              </g>
-            </Marker>}
           </ZoomableGroup>
         </ComposableMap>
       </div>

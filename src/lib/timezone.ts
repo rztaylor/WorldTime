@@ -31,10 +31,15 @@ export const offsetLabel = (timestamp: number, timezone: string) =>
 export const zoneName = (timestamp: number, timezone: string) =>
   zonedDateTime(timestamp, timezone).offsetNameShort ?? timezone
 
+const isGmtLabel = (value: string) => /^GMT(?:[+-]\d{1,2}(?::?\d{2})?)?$/i.test(value.trim())
+
 export const zoneAbbreviation = (timestamp: number, location: Pick<LocationRecord, 'timezone' | 'aliases'>) => {
-  if (!location.aliases?.length) return zoneName(timestamp, location.timezone)
-  if (location.aliases.length === 1) return location.aliases[0]
-  return location.aliases[zonedDateTime(timestamp, location.timezone).isInDST ? 1 : 0]
+  const abbreviation = !location.aliases?.length
+    ? zoneName(timestamp, location.timezone)
+    : location.aliases.length === 1
+      ? location.aliases[0]
+      : location.aliases[zonedDateTime(timestamp, location.timezone).isInDST ? 1 : 0]
+  return isGmtLabel(abbreviation) ? null : abbreviation
 }
 
 export const dayRelation = (timestamp: number, timezone: string, homeTimezone: string) => {
@@ -60,12 +65,13 @@ export const describeZone = (location: LocationRecord, timestamp: number) => {
 export const zoneDisplayNames = (timezone: string, timestamp: number) => {
   const current = zonedDateTime(timestamp, timezone).setLocale('en-US')
   const seasonal = [1, 7].map((month) => DateTime.fromObject({ year: current.year, month, day: 15 }, { zone: timezone }).setLocale('en-US'))
-  const abbreviations = [...new Set([current, ...seasonal].map((time) => time.offsetNameShort).filter(Boolean))] as string[]
+  const rawAbbreviations = [...new Set([current, ...seasonal].map((time) => time.offsetNameShort).filter(Boolean))] as string[]
   const names = [...new Set([current, ...seasonal].map((time) => time.offsetNameLong).filter(Boolean))] as string[]
+  const rawCurrentName = current.offsetNameLong ?? timezone
   return {
-    abbreviations,
-    currentName: current.offsetNameLong ?? timezone,
-    searchText: [timezone, ...abbreviations, ...names].join(' ').toLocaleLowerCase(),
+    abbreviations: rawAbbreviations.filter((abbreviation) => !isGmtLabel(abbreviation)),
+    currentName: isGmtLabel(rawCurrentName) ? timezone : rawCurrentName,
+    searchText: [timezone, ...rawAbbreviations, ...names].join(' ').toLocaleLowerCase(),
   }
 }
 

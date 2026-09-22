@@ -19,6 +19,7 @@ export function SortableTimezoneCard({ timezone, now, index, total }: Props) {
   const relation = dayRelation(now, timezone.timezone, home.timezone)
   const activeCard = active.timezone === timezone.timezone
   const clock = formatClockParts(now, timezone.timezone, timeFormat)
+  const abbreviation = zoneAbbreviation(now, timezone)
 
   return (
     <article
@@ -36,7 +37,7 @@ export function SortableTimezoneCard({ timezone, now, index, total }: Props) {
       <div className="card-time"><strong>{clock.time}</strong>{clock.period && <span>{clock.period}</span>}</div>
       <div className="card-zone">
         <span className="card-country">{timezone.country}</span>
-        <span className="card-abbreviation">· {zoneAbbreviation(now, timezone)}</span>
+        {abbreviation && <span className="card-abbreviation">· {abbreviation}</span>}
         {relation !== 'Today' && <em>{relation}</em>}
         <strong>{offsetLabel(now, timezone.timezone)}</strong>
       </div>

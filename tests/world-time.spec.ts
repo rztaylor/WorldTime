@@ -35,6 +35,15 @@ test('search selects a timezone and only adds it after confirmation', async ({ p
   await expect(page.locator('.timezone-card').filter({ hasText: 'Tokyo' })).toHaveCount(1)
 })
 
+test('GMT offset fallbacks are not displayed', async ({ page }) => {
+  await page.getByRole('combobox', { name: /search cities/i }).fill('Pacific/Fiji')
+  await page.getByRole('option', { name: /Fiji/i }).first().click()
+
+  const sidebar = page.getByRole('complementary', { name: 'Selected timezone details' })
+  await expect(sidebar.locator('.zone-meta').first()).toHaveText(/^UTC\+12 now$/)
+  await expect(sidebar.getByText(/GMT(?:[+-]\d+)?/i)).toHaveCount(0)
+})
+
 test('map countries and UTC bands update the sidebar without adding cards', async ({ page }, testInfo) => {
   await page.getByRole('button', { name: /Peru\. Press Enter to select/ }).click()
   await expect(page.getByText('America / Lima').first()).toBeVisible()
@@ -68,12 +77,26 @@ test('country drilldown returns to the originating UTC offset list', async ({ pa
   await expect(page.getByRole('button', { name: 'United Kingdom', exact: true })).toBeVisible()
 })
 
-test('country marker does not block selecting a neighbouring country', async ({ page }) => {
+test('country label does not block selecting a neighbouring country', async ({ page }) => {
   await page.getByRole('button', { name: /Côte d'Ivoire\. Press Enter to select/ }).click()
   await expect(page.getByText("Côte d'Ivoire").first()).toBeVisible()
   await page.getByRole('button', { name: /Ghana\. Press Enter to select/ }).click()
   await expect(page.getByText('Ghana').first()).toBeVisible()
   await expect(page.getByText('Africa / Abidjan').first()).toBeVisible()
+})
+
+test('selecting a timezone card always shows its country label without a map marker', async ({ page }) => {
+  await page.getByRole('combobox', { name: /search cities/i }).fill('Europe/Warsaw')
+  await page.getByRole('option', { name: /Warsaw/i }).first().click()
+  await page.getByRole('button', { name: 'Add to comparison' }).click()
+  await page.locator('svg.rsm-svg').click({ position: { x: 5, y: 5 } })
+  await page.getByRole('article').filter({ hasText: 'Warsaw' }).click()
+
+  const label = page.locator('.active-marker')
+  await expect(page.locator('.selected-country')).toHaveCount(1)
+  await expect(label.getByText('Poland')).toBeVisible()
+  await expect(label.getByText('Warsaw')).toBeVisible()
+  await expect(label.locator('circle:not(.marker-dot)')).toHaveCount(0)
 })
 
 test('UTC bands stay synchronized with map pan and zoom', async ({ page }, testInfo) => {
@@ -191,6 +214,27 @@ test('renders the responsive comparison experience', async ({ page }, testInfo) 
   await expect(page.getByText('Maximum overlap')).toHaveCount(0)
   await expect(page.locator('.overlap-row')).toHaveCount(2)
   await expect(page.locator('.overlap-row').first().locator('.hour-cell')).toHaveCount(24)
+  const firstHour = page.locator('.hour-cell strong').first()
+  await expect(firstHour).toHaveCSS('font-size', '13px')
+  await expect(firstHour).toHaveText(/^12$/)
+  await expect(page.locator('.hour-cell small').first()).toHaveText(/^AM$/)
+  await expect(page.locator('.hour-cell small').first()).toHaveCSS('font-size', '7px')
+  await page.getByRole('button', { name: /change time format/i }).click()
+  await expect(firstHour).toHaveCSS('font-size', '13px')
+  await expect(firstHour).toHaveText(/^00$/)
+  await expect(page.locator('.hour-cell small')).toHaveCount(0)
+  await page.getByRole('button', { name: /change time format/i }).click()
+  await expect(page.getByText('Home', { exact: true })).toHaveCount(0)
+  await expect(page.locator('.overlap-location').first().getByLabel('Home timezone')).toBeAttached()
+  await expect(page.locator('.overlap-location').first().locator('span')).toHaveCSS('font-size', '22px')
+  await expect(page.locator('.overlap-location').first().locator('span')).toHaveCSS('font-weight', '500')
+  await expect(page.locator('.overlap-location').first().locator('span')).not.toContainText('·')
+  await expect(page.locator('.overlap-row').first().locator('.hour-cell em')).toHaveCount(0)
+  const offsetRow = page.locator('.overlap-row').nth(1)
+  expect(await offsetRow.locator('.hour-cell em').count()).toBeGreaterThan(1)
+  const differentDayCell = offsetRow.locator('.hour-cell:has(em)').first()
+  const [dayBox, timeBox] = await Promise.all([differentDayCell.locator('em').boundingBox(), differentDayCell.locator('strong').boundingBox()])
+  expect(dayBox!.y).toBeLessThan(timeBox!.y)
   await expect(page.locator('.current-time').first()).toHaveCSS('background-color', 'rgb(229, 57, 53)')
   await expect(page.locator('.current-time').getByText('Now', { exact: true })).toHaveCount(1)
   if ((await page.viewportSize())!.width <= 800) {

@@ -156,7 +156,6 @@ nav button.active::after { content: ""; position: absolute; height: 3px; backgro
 .country:focus, .country:focus-visible { outline: none; }
 .active-marker { pointer-events: none; }
 .active-marker rect { fill: var(--ink); stroke: var(--canvas); stroke-width: .7; }
-.active-marker > circle:first-child { fill: var(--canvas); stroke: var(--ink); stroke-width: 3; }
 .active-marker text { fill: var(--canvas); }
 .active-marker .marker-country { font-size: 10px; font-weight: 800; }
 .active-marker .marker-city { fill: color-mix(in srgb, var(--canvas) 70%, transparent); font-size: 8px; font-weight: 500; }
@@ -228,13 +227,14 @@ nav button.active::after { content: ""; position: absolute; height: 3px; backgro
 .overlap-row:first-child { border-top: 1px solid var(--line); }
 .overlap-location { min-width: 0; display: flex; flex-direction: column; justify-content: center; padding: 8px 16px 8px 0; }
 .overlap-location strong { display: flex; align-items: center; gap: 7px; font-size: 14px; }
-.overlap-location strong em { padding: 2px 4px; border: 1px solid var(--line); color: var(--muted); font-size: 7px; font-style: normal; letter-spacing: .06em; text-transform: uppercase; }
-.overlap-location span { margin-top: 3px; color: var(--muted); font-size: 11px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.overlap-location strong svg { width: 14px; height: 14px; flex: 0 0 auto; }
+.overlap-location span { margin-top: 3px; color: var(--muted); font-size: 22px; font-weight: 500; font-variant-numeric: tabular-nums; line-height: 1.15; }
 .overlap-timeline { min-width: 720px; display: grid; grid-template-columns: repeat(24, minmax(30px, 1fr)); position: relative; border-left: 1px solid var(--line); border-right: 1px solid var(--line); }
-.hour-cell { min-width: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; border-left: 1px solid color-mix(in srgb, var(--canvas) 42%, transparent); font-variant-numeric: tabular-nums; line-height: 1; }
+.hour-cell { min-width: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; border-left: 1px solid color-mix(in srgb, var(--canvas) 42%, transparent); font-variant-numeric: tabular-nums; line-height: 1; }
 .hour-cell:first-child { border-left: 0; }
-.hour-cell strong { font-size: 11px; font-weight: 800; }
-.hour-cell small { margin-top: 3px; font-size: 6px; font-weight: 800; letter-spacing: .03em; }
+.hour-cell strong { font-size: 13px; font-weight: 800; }
+.hour-cell small { margin-top: 2px; font-size: 7px; font-weight: 800; letter-spacing: .03em; text-transform: uppercase; }
+.hour-cell em { margin-bottom: 2px; font-size: 7px; font-style: normal; font-weight: 900; letter-spacing: .04em; text-transform: uppercase; }
 .hour-cell.work { color: var(--hour-work-text); background: var(--hour-work); }
 .hour-cell.other { color: var(--hour-other-text); background: var(--hour-other); }
 .hour-cell.night { color: var(--hour-night-text); background: var(--hour-night); }
@@ -285,13 +285,13 @@ nav button.active::after { content: ""; position: absolute; height: 3px; backgro
   .schedule-settings fieldset { width: 100%; padding: 0; }
   .schedule-settings fieldset + fieldset { margin-top: 18px; padding-top: 18px; border-top: 1px solid var(--line); border-left: 0; }
   .overlap-chart { overflow-x: auto; padding: 20px 0; scroll-behavior: auto; }
-  .overlap-fixed-locations { width: 116px; display: block; position: absolute; z-index: 5; top: 20px; bottom: 20px; left: 0; background: var(--canvas); box-shadow: 1px 0 var(--line); }
+  .overlap-fixed-locations { width: 170px; display: block; position: absolute; z-index: 5; top: 20px; bottom: 20px; left: 0; background: var(--canvas); box-shadow: 1px 0 var(--line); }
   .overlap-fixed-location { height: 64px; display: flex; flex-direction: column; justify-content: center; padding: 8px 10px 8px 20px; border-bottom: 1px solid var(--line); background: var(--canvas); }
   .overlap-fixed-location:first-child { border-top: 1px solid var(--line); }
   .overlap-fixed-location strong { display: flex; align-items: center; gap: 7px; font-size: 14px; }
-  .overlap-fixed-location strong em { padding: 2px 4px; border: 1px solid var(--line); color: var(--muted); font-size: 7px; font-style: normal; letter-spacing: .06em; text-transform: uppercase; }
-  .overlap-fixed-location span { margin-top: 3px; color: var(--muted); font-size: 11px; font-weight: 700; font-variant-numeric: tabular-nums; }
-  .overlap-row { grid-template-columns: 116px 720px; }
+  .overlap-fixed-location strong svg { width: 14px; height: 14px; flex: 0 0 auto; }
+  .overlap-fixed-location span { margin-top: 3px; color: var(--muted); font-size: 22px; font-weight: 500; font-variant-numeric: tabular-nums; line-height: 1.15; }
+  .overlap-row { grid-template-columns: 170px 720px; }
   .overlap-location { visibility: hidden; }
   .region-labels { display: none; }
 }
