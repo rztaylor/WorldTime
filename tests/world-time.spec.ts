@@ -180,6 +180,56 @@ test('large countries keep a compact, searchable timezone list', async ({ page }
   await page.screenshot({ path: testInfo.outputPath('filtered-timezones.png'), fullPage: true })
 })
 
+test('expanded cities are searchable and can relabel an existing timezone card', async ({ page }, testInfo) => {
+  const search = page.getByRole('combobox', { name: /search cities/i })
+  const sidebar = page.getByRole('complementary', { name: 'Selected timezone details' })
+  await search.fill('Manchester')
+  await page.getByRole('option', { name: /Cities: Manchester/i }).click()
+  await expect(sidebar.locator('.zone-city')).toHaveText('Manchester')
+  await sidebar.getByRole('button', { name: 'Use Manchester in comparison' }).click()
+  if ((await page.viewportSize())!.width <= 800) await page.locator('svg.rsm-svg').click({ position: { x: 5, y: 5 } })
+  await expect(page.getByRole('article').filter({ hasText: 'Manchester' })).toBeVisible()
+  await expect(page.getByRole('article').filter({ hasText: 'London' })).toHaveCount(0)
+
+  await page.getByRole('button', { name: /United Kingdom\. Press Enter to select/ }).click()
+  const countryFilter = sidebar.getByRole('textbox', { name: 'Filter places and timezones' })
+  await expect(countryFilter).toBeVisible()
+  const credit = sidebar.getByText(/City data: GeoNames/)
+  const sidebarBox = (await sidebar.boundingBox())!
+  const creditBox = (await credit.boundingBox())!
+  if ((await page.viewportSize())!.width > 800) {
+    expect(sidebarBox.y + sidebarBox.height - (creditBox.y + creditBox.height)).toBeLessThan(30)
+  }
+  await expect(sidebar.getByRole('button', { name: /Edinburgh.*UTC\+1/i })).toBeVisible()
+  const cityBox = (await sidebar.getByRole('button', { name: /Edinburgh.*UTC\+1/i }).boundingBox())!
+  expect(cityBox.y + cityBox.height).toBeLessThan(creditBox.y)
+  await page.screenshot({ path: testInfo.outputPath('expanded-uk-cities.png'), fullPage: true })
+  await countryFilter.fill('Leeds')
+  await sidebar.getByRole('button', { name: /Leeds.*UTC\+1/i }).click()
+  await expect(sidebar.locator('.zone-city')).toHaveText('Leeds')
+  await sidebar.getByRole('button', { name: 'Use Leeds in comparison' }).click()
+  await page.reload()
+  if ((await page.viewportSize())!.width <= 800) await page.locator('svg.rsm-svg').click({ position: { x: 5, y: 5 } })
+  await expect(page.getByRole('article').filter({ hasText: 'Leeds' })).toBeVisible()
+
+  await search.fill('Marseille')
+  await expect(page.getByRole('option', { name: /Cities: Marseille/i })).toBeVisible()
+  await search.fill('Barcelona')
+  await expect(page.getByRole('option', { name: /Cities: Barcelona, Spain/i })).toBeVisible()
+  await search.fill('Belfast')
+  await search.press('Enter')
+  await expect(sidebar.locator('.zone-city')).toHaveText('Belfast')
+})
+
+test('GMT search selects the fixed Greenwich timezone in the UK', async ({ page }) => {
+  await page.getByRole('combobox', { name: /search cities/i }).fill('GMT')
+  await expect(page.getByRole('option', { name: /Timezone: Greenwich Mean Time/i })).toHaveCount(1)
+  await page.getByRole('option', { name: /Timezone: Greenwich Mean Time/i }).click()
+  const sidebar = page.getByRole('complementary', { name: 'Selected timezone details' })
+  await expect(sidebar.locator('.zone-country')).toHaveText('United Kingdom')
+  await expect(sidebar.locator('.zone-meta')).toContainText('UTC now · GMT')
+})
+
 test('named timezones and UTC can be selected and added as timezone cards', async ({ page }) => {
   const search = page.getByRole('combobox', { name: /search cities/i })
   await search.fill('Eastern Time')

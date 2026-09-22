@@ -77,9 +77,22 @@ export const utcTimezone = (timestamp: number): LocationRecord => asNamedTimezon
   aliases: ['UTC'],
 }, timestamp)
 
+export const gmtTimezone = (): LocationRecord => ({
+  id: 'timezone-etc-gmt',
+  city: 'Greenwich Mean Time',
+  country: 'United Kingdom',
+  countryCode: 'GB',
+  timezone: 'Etc/GMT',
+  latitude: 51.4826,
+  longitude: 0,
+  aliases: ['GMT'],
+  kind: 'timezone',
+})
+
 const isGmtLabel = (value: string) => /^GMT(?:[+-]\d{1,2}(?::?\d{2})?)?$/i.test(value.trim())
 
 export const zoneAbbreviation = (timestamp: number, location: Pick<LocationRecord, 'timezone' | 'aliases' | 'kind'>) => {
+  if (location.timezone === 'Etc/GMT') return 'GMT'
   const localeAbbreviation = ['en-US', 'en-GB']
     .map((locale) => zonedDateTime(timestamp, location.timezone).setLocale(locale).offsetNameShort)
     .find((name): name is string => Boolean(name && !isGmtLabel(name)))

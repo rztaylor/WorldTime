@@ -6,6 +6,7 @@ All notable changes follow Keep a Changelog categories.
 
 ### Added
 
+- An offline catalog of major cities and capitals across countries, with searchable UK, French, and Spanish coverage.
 - Friendly named-timezone and UTC search results that can be added directly to comparisons.
 - A favicon-first World Time app icon.
 - Initial World Time application with an interactive SVG map, live IANA timezone clocks, local preference persistence, reorderable comparison cards, search, Home timezone controls, and overlap-hours visualization.
@@ -17,6 +18,7 @@ All notable changes follow Keep a Changelog categories.
 
 ### Changed
 
+- Country panels keep a short default city list while searching the wider catalog; selecting a different city in an existing timezone changes the comparison card's place label.
 - Combined country cities and timezone regions into one compact, icon-labelled sidebar list, with seasonal abbreviations retained as search aliases.
 - Expanded comparisons to ten timezones in a two-row, five-column desktop grid and removed the redundant Add City placeholder card.
 - Moved time comparison into a dedicated **Compare** view with per-location, labeled hourly cells and persistent work/night ranges rendered in subtle theme-aware yellow, blue, and purple.
@@ -36,6 +38,7 @@ All notable changes follow Keep a Changelog categories.
 
 ### Fixed
 
+- GMT search now selects a fixed Greenwich/UK timezone instead of associating its name with Côte d'Ivoire.
 - Aligned half-hour and quarter-hour timezones correctly in Compare using 15-minute grid slots while retaining full-hour boxes.
 - Removed GMT-derived offset labels from the interface so UTC is the sole displayed offset standard.
 - Timezone-card selection now consistently shows the country label on the map, including catalogue locations without stored coordinates, and the redundant country marker has been removed.

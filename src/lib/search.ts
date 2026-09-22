@@ -1,6 +1,7 @@
 import { countries, locations } from '../data/locations'
+import { cities } from '../data/cities'
 import { catalogCountries, catalogTimezones } from '../data/catalog'
-import { asNamedTimezone, offsetLabel, utcTimezone, zoneAbbreviation, zoneDisplayNames } from './timezone'
+import { asNamedTimezone, gmtTimezone, offsetLabel, utcTimezone, zoneAbbreviation, zoneDisplayNames } from './timezone'
 import type { LocationRecord } from '../types/timezone'
 
 export interface SearchResult {
@@ -9,7 +10,7 @@ export interface SearchResult {
   detail: string
 }
 
-const normalize = (value: string) => value.toLocaleLowerCase().replace(/[−–—]/g, '-').trim()
+const normalize = (value: string) => value.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLocaleLowerCase().replace(/[−–—]/g, '-').trim()
 
 export function searchLocations(query: string, timestamp = Date.now()): SearchResult[] {
   const needle = normalize(query)
@@ -40,12 +41,17 @@ export function searchLocations(query: string, timestamp = Date.now()): SearchRe
   }
 
   const utc = utcTimezone(timestamp)
-  if (['utc', 'coordinated universal time', 'gmt', 'utc+0', 'utc-0'].includes(needle)) {
+  if (needle === 'gmt' || needle.startsWith('greenwich')) {
+    add(gmtTimezone(), 'Timezones', 'United Kingdom · GMT · UTC')
+    return results
+  }
+  if (['utc', 'coordinated universal time', 'utc+0', 'utc-0'].includes(needle)) {
     add(utc, 'Timezones', 'Coordinated Universal Time · UTC')
   }
 
-  for (const location of locations) {
-    if (normalize(location.city).includes(needle)) {
+  for (const location of cities) {
+    const cityName = normalize(location.city)
+    if (cityName.includes(needle) && (!isAbbreviationQuery || cityName === needle)) {
       add(location, 'Cities', [location.country, offsetLabel(timestamp, location.timezone)].join(' · '))
     }
   }

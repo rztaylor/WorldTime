@@ -93,13 +93,17 @@ export function TimezoneProvider({ children }: { children: ReactNode }) {
     setInspectedOffset(null)
     setInspectedLocation(location)
     update((current) => {
-      const exists = current.selectedTimezones.some(({ timezone }) => timezone === location.timezone)
+      const existing = current.selectedTimezones.find(({ timezone }) => timezone === location.timezone)
+      let selectedTimezones = current.selectedTimezones
+      if (existing && existing.id !== location.id) {
+        selectedTimezones = selectedTimezones.map((item) => item.timezone === location.timezone ? { ...location, isHome: item.isHome } : item)
+      } else if (!existing && selectedTimezones.length < MAX_SELECTED_TIMEZONES) {
+        selectedTimezones = [...selectedTimezones, { ...location, isHome: false }]
+      }
       return {
         ...current,
         activeTimezone: location.timezone,
-        selectedTimezones: exists || current.selectedTimezones.length >= MAX_SELECTED_TIMEZONES
-          ? current.selectedTimezones
-          : [...current.selectedTimezones, { ...location, isHome: false }],
+        selectedTimezones,
       }
     })
   }

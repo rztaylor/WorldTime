@@ -6,6 +6,12 @@ describe('searchLocations', () => {
     expect(searchLocations('Tokyo')[0]?.location.timezone).toBe('Asia/Tokyo')
   })
 
+  it('finds expanded cities without treating their timezone as a city match', () => {
+    expect(searchLocations('Leeds').find((result) => result.group === 'Cities')?.location).toMatchObject({ countryCode: 'GB', timezone: 'Europe/London' })
+    expect(searchLocations('Malaga').find((result) => result.group === 'Cities')?.location.city).toBe('Málaga')
+    expect(searchLocations('CST').every((result) => result.group === 'Timezones')).toBe(true)
+  })
+
   it('finds a country and an IANA timezone', () => {
     expect(searchLocations('Japan').some((result) => result.location.city === 'Tokyo')).toBe(true)
     expect(searchLocations('America/New_York').some((result) => result.location.kind === 'timezone' && result.location.timezone === 'America/New_York')).toBe(true)
@@ -63,5 +69,13 @@ describe('searchLocations', () => {
 
   it('offers UTC as a first-class timezone', () => {
     expect(searchLocations('UTC')[0]?.location).toMatchObject({ city: 'UTC', kind: 'timezone', timezone: 'UTC' })
+  })
+
+  it('associates fixed GMT with Greenwich in the UK, not a matching country catalog zone', () => {
+    for (const query of ['GMT', 'Greenwich Mean Time']) {
+      expect(searchLocations(query).map((result) => result.location)).toEqual([
+        expect.objectContaining({ city: 'Greenwich Mean Time', country: 'United Kingdom', timezone: 'Etc/GMT', kind: 'timezone' }),
+      ])
+    }
   })
 })
