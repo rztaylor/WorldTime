@@ -28,6 +28,8 @@ All notable changes follow Keep a Changelog categories.
 - Improved mobile map and comparison layouts with wrapping card rows, selection-aware card visibility, compact horizontal map overlays, an initially centred current-time schedule, and collapsible schedule controls.
 - Made Compare-row local times twice as large, replaced the Home text badge with a home icon, unified 12/24-hour cell typography, and labelled every hour whose weekday differs from Home.
 - Reworked Compare tiles into a consistent monochrome night/work/other palette across both themes, with red text and a positional NOW line marking the current time.
+- Added work, sun-on-the-horizon, or night icons beside timezone-card times using the same configured ranges as Compare.
+- Added local time to selected-country map labels and reorganized sidebar details around a prominent city/country heading, with the IANA timezone demoted and the standard-offset line removed.
 
 ### Fixed
 

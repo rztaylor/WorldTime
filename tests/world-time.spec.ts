@@ -6,7 +6,7 @@ test.beforeEach(async ({ page }) => {
   await page.reload()
 })
 
-test('search selects a timezone and only adds it after confirmation', async ({ page }) => {
+test('search selects a timezone and only adds it after confirmation', async ({ page }, testInfo) => {
   await page.getByRole('combobox', { name: /search cities/i }).fill('Asia/Tokyo')
   await page.getByRole('option', { name: /Tokyo/i }).first().click()
   await expect(page.getByText('Asia / Tokyo').first()).toBeVisible()
@@ -23,6 +23,10 @@ test('search selects a timezone and only adds it after confirmation', async ({ p
   await expect(tokyoCard.locator('.card-country')).toHaveText('Japan')
   await expect(tokyoCard.locator('.card-abbreviation')).toHaveText('· JST')
   const londonCard = page.getByRole('article').filter({ hasText: 'London' })
+  await expect(londonCard.locator('.card-time-icon')).toHaveCount(1)
+  await expect(londonCard.locator('.card-time-icon')).toHaveAttribute('aria-label', /^(Working hours|Nighttime|Outside working hours)$/)
+  await expect(tokyoCard.locator('.card-time-icon')).toHaveCount(1)
+  await page.screenshot({ path: testInfo.outputPath('timezone-card-icons.png'), fullPage: true })
   const londonBounds = (await londonCard.boundingBox())!
   const tokyoBounds = (await tokyoCard.boundingBox())!
   await page.mouse.move(londonBounds.x + londonBounds.width / 2, londonBounds.y + londonBounds.height / 2)
@@ -85,7 +89,7 @@ test('country label does not block selecting a neighbouring country', async ({ p
   await expect(page.getByText('Africa / Abidjan').first()).toBeVisible()
 })
 
-test('selecting a timezone card always shows its country label without a map marker', async ({ page }) => {
+test('selecting a timezone card always shows its country label without a map marker', async ({ page }, testInfo) => {
   await page.getByRole('combobox', { name: /search cities/i }).fill('Europe/Warsaw')
   await page.getByRole('option', { name: /Warsaw/i }).first().click()
   await page.getByRole('button', { name: 'Add to comparison' }).click()
@@ -96,7 +100,9 @@ test('selecting a timezone card always shows its country label without a map mar
   await expect(page.locator('.selected-country')).toHaveCount(1)
   await expect(label.getByText('Poland')).toBeVisible()
   await expect(label.getByText('Warsaw')).toBeVisible()
+  await expect(label.locator('.marker-time')).toHaveText(/^\d{1,2}:\d{2} (?:AM|PM)$/)
   await expect(label.locator('circle:not(.marker-dot)')).toHaveCount(0)
+  await page.screenshot({ path: testInfo.outputPath('location-details.png'), fullPage: true })
 })
 
 test('UTC bands stay synchronized with map pan and zoom', async ({ page }, testInfo) => {
@@ -201,7 +207,11 @@ test('mobile map prioritizes selected country details and wraps cards after dese
 test('renders the responsive comparison experience', async ({ page }, testInfo) => {
   await expect(page.getByText('Current offsets · includes daylight saving')).toBeVisible()
   await expect(page.getByText(/UTC\+1 now/)).toBeVisible()
-  await expect(page.getByText('Standard offset: UTC')).toBeVisible()
+  const sidebar = page.getByRole('complementary', { name: 'Selected timezone details' })
+  await expect(sidebar.locator('.zone-city')).toHaveText('London')
+  await expect(sidebar.locator('.zone-country')).toHaveText('United Kingdom')
+  await expect(sidebar.getByText('Europe / London', { exact: true })).toBeVisible()
+  await expect(page.getByText(/Standard offset:/)).toHaveCount(0)
   await expect(page.getByRole('img', { name: /world map/i })).toBeVisible()
   await expect(page.getByRole('heading', { name: 'Compare' })).toHaveCount(0)
   await expect(page.getByRole('button', { name: 'Timezones', exact: true })).toHaveCount(0)

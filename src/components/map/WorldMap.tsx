@@ -8,7 +8,7 @@ import {
   countryNamesForTimezone,
   locationForCountryName,
 } from '../../data/catalog'
-import { countryNamesForOffset } from '../../lib/timezone'
+import { countryNamesForOffset, formatClock } from '../../lib/timezone'
 
 interface MapPosition {
   coordinates: [number, number]
@@ -33,10 +33,11 @@ function transformForPosition({ coordinates, zoom }: MapPosition): MapTransform 
 }
 
 export function WorldMap({ now }: { now: number }) {
-  const { active, inspectedOffset, mapCountrySelected, clearMapSelection, selectLocation, selectOffset } = useTimezones()
+  const { active, inspectedOffset, mapCountrySelected, timeFormat, clearMapSelection, selectLocation, selectOffset } = useTimezones()
   const [position, setPosition] = useState<MapPosition>(INITIAL_POSITION)
   const [mapTransform, setMapTransform] = useState<MapTransform>(() => transformForPosition(INITIAL_POSITION))
-  const markerWidth = Math.max(96, active.country.length * 6.4 + 30, active.city.length * 5.3 + 30)
+  const activeTime = formatClock(now, active.timezone, timeFormat)
+  const markerWidth = Math.max(96, active.country.length * 6.4 + 30, active.city.length * 5.3 + 30, activeTime.length * 5.3 + 30)
   const relatedCountries = useMemo(
     () => inspectedOffset === null
       ? countryNamesForTimezone(active.timezone)
@@ -131,10 +132,11 @@ export function WorldMap({ now }: { now: number }) {
                   })}
                   {selectedGeography && <Marker coordinates={geoCentroid(selectedGeography as never) as [number, number]}>
                     <g className="active-marker">
-                      <rect x={9} y={-21} width={markerWidth} height={42} rx={4} />
-                      <text className="marker-country" x={23} y={-3}>{active.country}</text>
-                      <text className="marker-city" x={23} y={11}>{active.city}</text>
-                      <circle cx={16} cy={0} r={3} className="marker-dot" />
+                      <rect x={9} y={-27} width={markerWidth} height={54} rx={4} />
+                      <text className="marker-country" x={23} y={-10}>{active.country}</text>
+                      <text className="marker-city" x={23} y={3}>{active.city}</text>
+                      <text className="marker-time" x={23} y={17}>{activeTime}</text>
+                      <circle cx={16} cy={-7} r={3} className="marker-dot" />
                     </g>
                   </Marker>}
                 </>

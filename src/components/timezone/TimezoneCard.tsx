@@ -1,8 +1,9 @@
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { ChevronLeft, ChevronRight, GripVertical, Home, Star, X } from 'lucide-react'
+import { ChevronLeft, ChevronRight, createLucideIcon, GripVertical, Home, Moon, Star, Sun, X } from 'lucide-react'
 import { useTimezones } from '../../app/TimezoneProvider'
-import { dayRelation, formatClockParts, offsetLabel, zoneAbbreviation } from '../../lib/timezone'
+import { hourKind } from '../../lib/overlap'
+import { dayRelation, formatClockParts, offsetLabel, zoneAbbreviation, zonedDateTime } from '../../lib/timezone'
 import type { SelectedTimezone } from '../../types/timezone'
 
 interface Props {
@@ -12,14 +13,26 @@ interface Props {
   total: number
 }
 
+const SunHorizon = createLucideIcon('SunHorizon', [
+  ['path', { d: 'M12 8v3', key: 'top-ray' }],
+  ['path', { d: 'm5.64 11.64 2.12 2.12', key: 'left-ray' }],
+  ['path', { d: 'm18.36 11.64-2.12 2.12', key: 'right-ray' }],
+  ['path', { d: 'M2 18h20', key: 'horizon' }],
+  ['path', { d: 'M16 18a4 4 0 0 0-8 0', key: 'sun' }],
+])
+
 export function SortableTimezoneCard({ timezone, now, index, total }: Props) {
-  const { selected, active, timeFormat, removeLocation, setHome, selectLocation, move } = useTimezones()
+  const { selected, active, timeFormat, workingHours, nightHours, removeLocation, setHome, selectLocation, move } = useTimezones()
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: timezone.id })
   const home = selected.find((item) => item.isHome) ?? timezone
   const relation = dayRelation(now, timezone.timezone, home.timezone)
   const activeCard = active.timezone === timezone.timezone
   const clock = formatClockParts(now, timezone.timezone, timeFormat)
   const abbreviation = zoneAbbreviation(now, timezone)
+  const localHour = zonedDateTime(now, timezone.timezone).hour
+  const kind = hourKind(localHour, workingHours, nightHours)
+  const TimeIcon = kind === 'work' ? Sun : kind === 'night' ? Moon : SunHorizon
+  const timeIconLabel = kind === 'work' ? 'Working hours' : kind === 'night' ? 'Nighttime' : 'Outside working hours'
 
   return (
     <article
@@ -34,7 +47,11 @@ export function SortableTimezoneCard({ timezone, now, index, total }: Props) {
         <span>{timezone.isHome && <Home aria-label="Home timezone" />}{timezone.city}</span>
         <button className="remove-card" onPointerDown={(event) => event.stopPropagation()} onClick={(event) => { event.stopPropagation(); removeLocation(timezone.id) }} disabled={total === 1} aria-label={`Remove ${timezone.city}`}><X /></button>
       </div>
-      <div className="card-time"><strong>{clock.time}</strong>{clock.period && <span>{clock.period}</span>}</div>
+      <div className="card-time">
+        <strong>{clock.time}</strong>
+        {clock.period && <span>{clock.period}</span>}
+        <TimeIcon className="card-time-icon" aria-label={timeIconLabel} />
+      </div>
       <div className="card-zone">
         <span className="card-country">{timezone.country}</span>
         {abbreviation && <span className="card-abbreviation">· {abbreviation}</span>}
