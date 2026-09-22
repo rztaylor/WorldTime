@@ -1,9 +1,9 @@
 import { useMemo, useState } from 'react'
-import { ArrowLeft, Check, ChevronRight, Plus, Search, Sun } from 'lucide-react'
+import { ArrowLeft, Check, ChevronRight, Clock3, MapPin, Plus, Search, Sun } from 'lucide-react'
 import { useTimezones } from '../../app/TimezoneProvider'
-import { locations } from '../../data/locations'
+import { cities as allCities } from '../../data/cities'
 import { capitalLocationForCountry, timezoneChoicesForCountry } from '../../data/catalog'
-import { describeZone, locationsForOffset, zoneDisplayNames } from '../../lib/timezone'
+import { asNamedTimezone, describeZone, locationsForOffset, zoneDisplayNames } from '../../lib/timezone'
 import { MAX_SELECTED_TIMEZONES } from '../../types/timezone'
 
 export function TimezoneSidebar({ now }: { now: number }) {
@@ -11,24 +11,46 @@ export function TimezoneSidebar({ now }: { now: number }) {
   const [timezoneFilter, setTimezoneFilter] = useState({ countryCode: '', query: '' })
   const timezoneQuery = timezoneFilter.countryCode === active.countryCode ? timezoneFilter.query : ''
   const details = describeZone(active, now)
-  const sameZone = locations.filter((item) => item.timezone === active.timezone)
-  const countryCities = locations.filter((item) => item.countryCode === active.countryCode)
-  const capital = capitalLocationForCountry(active.countryCode, active.timezone)
-  const cities = capital && !countryCities.some((city) => city.city.toLocaleLowerCase() === capital.city.toLocaleLowerCase())
+  const sameZone = useMemo(() => allCities.filter((item) => item.timezone === active.timezone), [active.timezone])
+  const countryCities = useMemo(() => allCities.filter((item) => item.countryCode === active.countryCode), [active.countryCode])
+  const capital = useMemo(() => capitalLocationForCountry(active.countryCode, active.timezone), [active.countryCode, active.timezone])
+  const cities = useMemo(() => capital && !countryCities.some((city) => city.city.toLocaleLowerCase() === capital.city.toLocaleLowerCase())
     ? [capital, ...countryCities]
-    : countryCities
+    : countryCities, [capital, countryCities])
   const selectDrilldown = returnOffset === null ? selectLocation : selectLocationFromOffset
   const timezoneChoices = timezoneChoicesForCountry(active.countryCode)
-  const timezoneOptions = useMemo(() => {
+  const choices = useMemo(() => {
     const preferred = new Map(countryCities.map((city, index) => [city.timezone, index]))
-    const options = timezoneChoices
-      .map((choice) => ({ choice, display: zoneDisplayNames(choice.timezone, now) }))
+    const zones = timezoneChoices
+      .map((choice) => ({ choice: asNamedTimezone(choice, now), display: zoneDisplayNames(choice.timezone, now) }))
       .sort((a, b) => (preferred.get(a.choice.timezone) ?? 100) - (preferred.get(b.choice.timezone) ?? 100) || a.choice.timezone.localeCompare(b.choice.timezone))
     const query = timezoneQuery.trim().toLocaleLowerCase()
-    return (query ? options.filter(({ display }) => display.searchText.includes(query)) : options).slice(0, query ? 12 : 8)
-  }, [countryCities, now, timezoneChoices, timezoneQuery])
-  const isAdded = selected.some((item) => item.timezone === active.timezone)
-  const comparisonFull = !isAdded && selected.length >= MAX_SELECTED_TIMEZONES
+    const abbreviationQuery = zones.some(({ display }) => display.abbreviations.some((abbreviation) => abbreviation.toLocaleLowerCase() === query))
+      || cities.some((city) => city.aliases?.some((alias) => alias.toLocaleLowerCase() === query))
+    const cityMatches = cities.filter((city) => !query || (abbreviationQuery
+      ? city.city.toLocaleLowerCase() === query
+      : city.city.toLocaleLowerCase().includes(query)))
+    const represented = new Set(cities.map((city) => city.timezone))
+    const seenNames = new Set<string>()
+    const zoneMatches = zones.filter(({ choice, display }) => {
+      if (query && !(abbreviationQuery
+        ? display.abbreviations.some((abbreviation) => abbreviation.toLocaleLowerCase() === query)
+        : display.nameSearchText.includes(query) || (query.includes('/') && choice.timezone.toLocaleLowerCase().includes(query)))) return false
+      if (!query && represented.has(choice.timezone)) return false
+      const key = `${display.friendlyName}-${describeZone(choice, now).offset}`
+      if (seenNames.has(key)) return false
+      seenNames.add(key)
+      return true
+    })
+    return {
+      cities: cityMatches.slice(0, query ? 12 : 8),
+      zones: zoneMatches.slice(0, query ? 12 : Math.max(0, 8 - cityMatches.length)),
+    }
+  }, [cities, countryCities, now, timezoneChoices, timezoneQuery])
+  const matchingCard = selected.find((item) => item.timezone === active.timezone)
+  const isAdded = matchingCard?.id === active.id
+  const replacesCard = matchingCard && !isAdded
+  const comparisonFull = !matchingCard && selected.length >= MAX_SELECTED_TIMEZONES
 
   if (inspectedOffset !== null) {
     const offset = inspectedOffset === 0 ? 'UTC' : `UTC${inspectedOffset > 0 ? '+' : '−'}${Math.abs(inspectedOffset)}`
@@ -63,32 +85,30 @@ export function TimezoneSidebar({ now }: { now: number }) {
       </div>
       <p className="zone-title">{active.timezone.replaceAll('_', ' ').replace('/', ' / ')}</p>
       <p className="zone-meta">{details.offset} now{details.abbreviation && <> · {details.abbreviation}</>}</p>
+      {details.dstActive && <p className="dst-note"><Sun /> Daylight saving is currently in effect.</p>}
       <button className="add-selection" disabled={isAdded || comparisonFull} onClick={() => addLocation(active)}>
-        {isAdded ? <Check /> : <Plus />}{isAdded ? 'Added to comparison' : comparisonFull ? 'Comparison full · 10 maximum' : 'Add to comparison'}
+        {isAdded ? <Check /> : <Plus />}{isAdded ? 'Added to comparison' : replacesCard ? `Use ${active.city} in comparison` : comparisonFull ? 'Comparison full · 10 maximum' : 'Add to comparison'}
       </button>
-      {details.observesDst && <p className="dst-note"><Sun /> Daylight saving is {details.dstActive ? 'currently in effect' : 'not currently in effect'}.</p>}
 
-      {timezoneChoices.length > 1 && <section>
-        <h2>Available timezones</h2>
-        <p className="section-hint">This country spans {timezoneChoices.length} represented timezones. Choose or filter below.</p>
-        <label className="timezone-filter"><Search /><span className="sr-only">Filter timezones</span><input value={timezoneQuery} onChange={(event) => setTimezoneFilter({ countryCode: active.countryCode, query: event.target.value })} placeholder="PST, Eastern, Los Angeles…" /></label>
-        {timezoneOptions.map(({ choice, display }) => (
-          <button className={`list-row timezone-option ${choice.timezone === active.timezone ? 'selected' : ''}`} key={choice.timezone} onClick={() => selectDrilldown(choice)}>
-            <span className="timezone-row-copy"><strong>{choice.timezone.replaceAll('_', ' ')}</strong><small>{display.abbreviations.length ? `${display.abbreviations.join(' / ')} · ${display.currentName}` : display.currentName}</small></span><small>{describeZone(choice, now).offset}</small>
+      {(timezoneChoices.length > 1 || cities.length > 0 || sameZone.length > 1) && <section>
+        <h2>Places &amp; timezones</h2>
+        {(timezoneChoices.length > 1 || cities.length > 8) && <>
+          <p className="section-hint">Choose a common place or search {cities.length} cities{timezoneChoices.length > 1 ? ` and ${timezoneChoices.length} timezone regions` : ''}.</p>
+          <label className="timezone-filter"><Search /><span className="sr-only">Filter places and timezones</span><input value={timezoneQuery} onChange={(event) => setTimezoneFilter({ countryCode: active.countryCode, query: event.target.value })} placeholder="PST, Eastern, Los Angeles…" /></label>
+        </>}
+        {choices.cities.map((city) => (
+          <button className={`list-row compact-choice ${city.id === active.id ? 'selected' : ''}`} key={city.id} onClick={() => selectDrilldown(city)}>
+            <MapPin aria-hidden="true" /><span className="city-name">{city.city}{capital?.city.toLocaleLowerCase() === city.city.toLocaleLowerCase() && <em>Capital</em>}</span><small>{describeZone(city, now).offset}</small>
           </button>
         ))}
-        {!timezoneOptions.length && <p className="section-hint">No matching timezones.</p>}
-        {!timezoneQuery && timezoneChoices.length > timezoneOptions.length && <p className="section-hint">Showing common timezones. Search all {timezoneChoices.length}.</p>}
-      </section>}
-
-      {(cities.length > 0 || sameZone.length > 1) && <section>
-        <h2>Cities</h2>
-        {(cities.length ? cities : sameZone).map((city) => (
-          <button className={`list-row ${city.id === active.id ? 'selected' : ''}`} key={city.id} onClick={() => selectDrilldown(city)}>
-            <span className="city-name">{city.city}{capital?.id === city.id && <em>Capital</em>}</span><small>{describeZone(city, now).offset}</small>
+        {choices.zones.map(({ choice }) => (
+          <button className={`list-row compact-choice ${choice.id === active.id ? 'selected' : ''}`} key={choice.id} onClick={() => selectDrilldown(choice)}>
+            <Clock3 aria-hidden="true" /><span className="city-name">{choice.city}</span><small>{describeZone(choice, now).offset}</small>
           </button>
         ))}
+        {!choices.cities.length && !choices.zones.length && <p className="section-hint">No matching places or timezones.</p>}
       </section>}
+      <p className="city-data-credit">City data: <a href="https://www.geonames.org/" rel="license">GeoNames</a> (CC BY 4.0)</p>
     </aside>
   )
 }

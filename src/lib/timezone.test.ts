@@ -45,4 +45,8 @@ describe('zoneAbbreviation', () => {
       currentName: 'Etc/GMT-12',
     })
   })
+
+  it('uses a recognizable locale abbreviation for named timezones when available', () => {
+    expect(zoneAbbreviation(Date.UTC(2026, 6, 15), { timezone: 'Europe/Warsaw', kind: 'timezone' })).toBe('CEST')
+  })
 })

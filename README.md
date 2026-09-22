@@ -13,6 +13,12 @@ npm run dev
 
 Open the local URL printed by Vite. Press <kbd>⌘ K</kbd> or <kbd>Ctrl K</kbd> to search for a city, country, timezone, abbreviation, or UTC offset.
 
+The offline city catalog includes major cities worldwide. Country panels show a short
+default list and offer a filter for larger catalogs. City data is derived from
+[GeoNames](https://www.geonames.org/) under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/);
+the source extract is `cities15000.zip` from the [GeoNames download](https://download.geonames.org/export/dump/).
+Regenerate the bundled selection with `node scripts/build-city-catalog.mjs /path/to/cities15000.zip`.
+
 ## Validate
 
 ```bash
