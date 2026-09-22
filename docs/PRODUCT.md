@@ -128,10 +128,10 @@ Map selected:      #171717
 
 Avoid gradients except where subtle opacity variation is needed for timezone bands.
 
-Red remains the sole interaction accent and is reserved for selected map geography.
-The comparison visualization adds subtle functional colour: muted purple for nighttime,
-warm yellow for working hours, and restrained blue for the hours between. Light and dark
-themes adjust intensity and text contrast while preserving those meanings.
+Red remains the sole interaction accent. It identifies selected map geography and the
+current instant in the comparison grid. Comparison tiles use the same monochrome semantic
+palette in both themes: black for nighttime, white for working hours, and light grey for
+the hours between. Text contrast follows the tile background rather than the page theme.
 
 ---
 
@@ -368,12 +368,11 @@ Example:
 ```text
 ← All Timezones
 
-UTC+1
+Berlin
+Germany
 
-Central European Time
-CET
-
-Standard offset · GMT+1
+Europe / Berlin
+UTC+1 now · CET
 
 ☀ Some locations currently observe
   daylight saving time
@@ -430,7 +429,7 @@ It should show:
 * selected country
 * countries sharing the selected timezone
 * UTC offset labels
-* optional city marker
+* a compact label for the selected country or city
 
 The initial map should show longitude-aligned timezone bands approximately as:
 
@@ -494,13 +493,15 @@ Selected country may display a floating label:
 
 ```text
 ● Germany
-  Berlin
+  Berlin · 14:30
 ```
 
-The country is the prominent first line and the city is a smaller, lower-contrast second line.
+The country is the prominent first line and the city with its live local time is a smaller,
+lower-contrast second line.
 Avoid oversized popup balloons.
 Do not draw a focus rectangle or selection border around a country; the red fill is the
-complete visual selection treatment. Labels and markers must not intercept country clicks.
+complete visual selection treatment. Do not add a separate map marker; the country fill and
+label provide sufficient location context. Labels must not intercept country clicks.
 
 ---
 
@@ -1069,7 +1070,8 @@ shows that location's local hour in the user's selected 12- or 24-hour format, s
 separate time legend is unnecessary. The location name and current local time remain
 prominent at the left. A vertical marker identifies the current instant.
 
-Working, nighttime, and the intervening hours use muted yellow, purple, and blue.
+Working, nighttime, and the intervening hours use white, black, and light grey respectively
+in both page themes. The current-hour text is red on the appropriate semantic tile colour.
 
 Default working hours:
 
@@ -1677,7 +1679,7 @@ The initial usable release is complete when:
 * UTC-band headings select the countries currently sharing that offset
 * UTC-band inspection lists every matching country and does not mark one country as selected
 * chevrons appear only on country rows that drill into further detail
-* DST-observing locations show both their current abbreviation/offset and standard offset
+* DST-observing locations show their current abbreviation and UTC offset
 * country detail avoids repeating the selected country as a second section
 * every country detail includes its capital city, including countries without curated city data
 * selected countries use the red accent fill
