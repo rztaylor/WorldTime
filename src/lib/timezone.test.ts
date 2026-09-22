@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { describeZone, zoneAbbreviation } from './timezone'
+import { describeZone, zoneAbbreviation, zoneDisplayNames } from './timezone'
 
 const london = {
   id: 'london',
@@ -28,7 +28,7 @@ describe('describeZone', () => {
 
 describe('zoneAbbreviation', () => {
   it('uses the location alias for the current daylight-saving state', () => {
-    expect(zoneAbbreviation(Date.UTC(2026, 0, 15), london)).toBe('GMT')
+    expect(zoneAbbreviation(Date.UTC(2026, 0, 15), london)).toBeNull()
     expect(zoneAbbreviation(Date.UTC(2026, 6, 15), london)).toBe('BST')
   })
 
@@ -36,5 +36,13 @@ describe('zoneAbbreviation', () => {
     const delhi = { timezone: 'Asia/Kolkata', aliases: ['IST'] }
     expect(zoneAbbreviation(Date.UTC(2026, 0, 15), delhi)).toBe('IST')
     expect(zoneAbbreviation(Date.UTC(2026, 6, 15), delhi)).toBe('IST')
+  })
+
+  it('suppresses GMT offset fallbacks', () => {
+    expect(zoneAbbreviation(Date.UTC(2026, 0, 15), { timezone: 'Pacific/Fiji' })).toBeNull()
+    expect(zoneDisplayNames('Etc/GMT-12', Date.UTC(2026, 0, 15))).toMatchObject({
+      abbreviations: [],
+      currentName: 'Etc/GMT-12',
+    })
   })
 })

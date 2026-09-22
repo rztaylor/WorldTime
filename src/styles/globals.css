@@ -21,12 +21,12 @@
   --scrollbar-track: #ececea;
   --scrollbar-thumb: #aaa9a5;
   --scrollbar-thumb-hover: #777773;
-  --hour-work: #eee8d3;
-  --hour-other: #dbe5e8;
-  --hour-night: #ddd6e3;
-  --hour-work-text: #24231e;
-  --hour-other-text: #202426;
-  --hour-night-text: #252229;
+  --hour-work: #fff;
+  --hour-other: #bfbfbf;
+  --hour-night: #000;
+  --hour-work-text: #000;
+  --hour-other-text: #000;
+  --hour-night-text: #fff;
 }
 
 :root[data-theme="dark"] {
@@ -47,11 +47,11 @@
   --scrollbar-track: #242423;
   --scrollbar-thumb: #575754;
   --scrollbar-thumb-hover: #777773;
-  --hour-work: #3d3929;
-  --hour-other: #29373d;
-  --hour-night: #36303f;
-  --hour-work-text: #fff;
-  --hour-other-text: #fff;
+  --hour-work: #fff;
+  --hour-other: #bfbfbf;
+  --hour-night: #000;
+  --hour-work-text: #000;
+  --hour-other-text: #000;
   --hour-night-text: #fff;
 }
 
@@ -109,9 +109,13 @@ nav button.active::after { content: ""; position: absolute; height: 3px; backgro
 .timezone-sidebar { padding: 21px 22px 18px; background: var(--canvas); border-right: 1px solid var(--line); overflow: auto; }
 .back-link { display: flex; align-items: center; gap: 8px; border: 0; background: none; padding: 0; margin-bottom: 20px; font-size: 11px; font-weight: 700; cursor: pointer; }
 .back-link svg { width: 14px; }
-.zone-display { max-width: 100%; font-size: clamp(31px, 3.1vw, 46px); font-weight: 900; letter-spacing: -.065em; line-height: .9; overflow-wrap: anywhere; }
+.zone-display { max-width: 100%; display: flex; flex-direction: column; gap: 5px; overflow-wrap: anywhere; }
+.zone-offset { display: block; font-size: clamp(38px, 3.1vw, 46px); font-weight: 900; letter-spacing: -.065em; line-height: .9; }
+.zone-city { font-size: clamp(38px, 3.1vw, 46px); font-weight: 900; letter-spacing: -.065em; line-height: .9; }
+.zone-country { font-size: clamp(24px, 2vw, 30px); font-weight: 700; letter-spacing: -.035em; line-height: 1; }
 .timezone-sidebar h1 { font-size: 17px; margin: 11px 0 1px; letter-spacing: -.02em; }
 .zone-title, .zone-meta { margin: 0; font-size: 12px; }
+.zone-title { margin-top: 12px; font-weight: 700; }
 .zone-meta { margin-top: 3px; color: var(--muted); }
 .add-selection { width: 100%; min-height: 40px; margin-top: 15px; display: flex; align-items: center; justify-content: center; gap: 7px; border: 1px solid var(--accent); border-radius: var(--radius); background: var(--accent); color: #111; font-size: 11px; font-weight: 800; cursor: pointer; }
 .add-selection:disabled { border-color: var(--line); background: var(--subtle); color: var(--muted); cursor: default; }
@@ -156,10 +160,10 @@ nav button.active::after { content: ""; position: absolute; height: 3px; backgro
 .country:focus, .country:focus-visible { outline: none; }
 .active-marker { pointer-events: none; }
 .active-marker rect { fill: var(--ink); stroke: var(--canvas); stroke-width: .7; }
-.active-marker > circle:first-child { fill: var(--canvas); stroke: var(--ink); stroke-width: 3; }
 .active-marker text { fill: var(--canvas); }
 .active-marker .marker-country { font-size: 10px; font-weight: 800; }
 .active-marker .marker-city { fill: color-mix(in srgb, var(--canvas) 70%, transparent); font-size: 8px; font-weight: 500; }
+.active-marker .marker-time { font-size: 9px; font-weight: 700; }
 .active-marker .marker-dot { fill: var(--canvas); }
 .map-controls { position: absolute; z-index: 2; right: 14px; top: 66px; display: flex; overflow: hidden; border: 1px solid var(--line); border-radius: var(--radius); box-shadow: 0 4px 12px rgb(0 0 0 / .07); }
 .map-controls button { width: 40px; height: 40px; display: grid; place-items: center; border: 0; border-right: 1px solid var(--line); background: var(--canvas); cursor: pointer; }
@@ -186,9 +190,10 @@ nav button.active::after { content: ""; position: absolute; height: 3px; backgro
 .drag-handle { margin: 0 4px 0 -5px; opacity: .35; }
 .remove-card { margin-left: auto; cursor: pointer; }
 .remove-card:disabled { opacity: .2; }
-.card-time { margin-top: auto; display: flex; align-items: baseline; gap: 4px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.card-time { width: 100%; margin-top: auto; display: flex; align-items: baseline; gap: 4px; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .card-time strong { font-size: clamp(24px, 1.9vw, 31px); font-weight: 850; line-height: 1; letter-spacing: -.055em; }
 .card-time span { color: var(--muted); font-size: 10px; font-weight: 800; letter-spacing: .03em; }
+.card-time-icon { width: clamp(24px, 1.9vw, 31px); height: clamp(24px, 1.9vw, 31px); align-self: center; margin-left: auto; stroke-width: 1.5; }
 .home-card .card-time span { color: color-mix(in srgb, var(--canvas) 72%, var(--ink)); }
 .card-zone { min-width: 0; margin-top: 6px; display: flex; align-items: center; gap: 6px; color: var(--muted); font-size: 9px; white-space: nowrap; }
 .card-zone > span { min-width: 0; }
@@ -228,19 +233,21 @@ nav button.active::after { content: ""; position: absolute; height: 3px; backgro
 .overlap-row:first-child { border-top: 1px solid var(--line); }
 .overlap-location { min-width: 0; display: flex; flex-direction: column; justify-content: center; padding: 8px 16px 8px 0; }
 .overlap-location strong { display: flex; align-items: center; gap: 7px; font-size: 14px; }
-.overlap-location strong em { padding: 2px 4px; border: 1px solid var(--line); color: var(--muted); font-size: 7px; font-style: normal; letter-spacing: .06em; text-transform: uppercase; }
-.overlap-location span { margin-top: 3px; color: var(--muted); font-size: 11px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.overlap-location strong svg { width: 14px; height: 14px; flex: 0 0 auto; }
+.overlap-location span { margin-top: 3px; color: var(--muted); font-size: 22px; font-weight: 500; font-variant-numeric: tabular-nums; line-height: 1.15; }
 .overlap-timeline { min-width: 720px; display: grid; grid-template-columns: repeat(24, minmax(30px, 1fr)); position: relative; border-left: 1px solid var(--line); border-right: 1px solid var(--line); }
-.hour-cell { min-width: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; border-left: 1px solid color-mix(in srgb, var(--canvas) 42%, transparent); font-variant-numeric: tabular-nums; line-height: 1; }
+.hour-cell { min-width: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; border-left: 1px solid color-mix(in srgb, var(--canvas) 42%, transparent); font-variant-numeric: tabular-nums; line-height: 1; }
 .hour-cell:first-child { border-left: 0; }
-.hour-cell strong { font-size: 11px; font-weight: 800; }
-.hour-cell small { margin-top: 3px; font-size: 6px; font-weight: 800; letter-spacing: .03em; }
+.hour-cell strong { font-size: 13px; font-weight: 800; }
+.hour-cell small { margin-top: 2px; font-size: 7px; font-weight: 800; letter-spacing: .03em; text-transform: uppercase; }
+.hour-cell em { margin-bottom: 2px; font-size: 7px; font-style: normal; font-weight: 900; letter-spacing: .04em; text-transform: uppercase; }
 .hour-cell.work { color: var(--hour-work-text); background: var(--hour-work); }
 .hour-cell.other { color: var(--hour-other-text); background: var(--hour-other); }
 .hour-cell.night { color: var(--hour-night-text); background: var(--hour-night); }
+.hour-cell.current-hour { color: var(--accent); }
 .current-time { width: 2px; position: absolute; z-index: 2; top: -1px; bottom: -1px; left: var(--current-position); background: var(--accent); pointer-events: none; }
 .current-time::before { content: ""; width: 6px; height: 6px; position: absolute; top: -3px; left: -2px; border-radius: 50%; background: var(--accent); }
-.current-time > span { position: absolute; top: 5px; left: 5px; padding: 1px 2px; color: var(--accent); background: var(--canvas); font-size: 7px; font-weight: 900; letter-spacing: .08em; line-height: 1; text-transform: uppercase; }
+.current-time > span { position: absolute; top: 5px; left: 5px; padding: 1px 2px; color: var(--accent); font-size: 7px; font-weight: 700; letter-spacing: .06em; line-height: 1; text-transform: uppercase; }
 
 @media (max-width: 1180px) {
   .site-header { gap: 24px; }
@@ -270,7 +277,9 @@ nav button.active::after { content: ""; position: absolute; height: 3px; backgro
   .main-content { display: contents; }
   .map-panel { order: 0; height: 330px; min-height: 330px; border-bottom: 1px solid var(--line); }
   .timezone-sidebar { order: 1; max-height: 430px; border-right: 0; padding: 22px 20px; }
-  .zone-display { font-size: 36px; }
+  .zone-city { font-size: 38px; }
+  .zone-country { font-size: 26px; }
+  .zone-offset { font-size: 36px; }
   .timezone-strip { padding: 15px 14px; }
   .timezone-strip.mobile-hidden { display: none; }
   .card-row { grid-template-columns: repeat(auto-fit, minmax(145px, 1fr)); }
@@ -285,13 +294,13 @@ nav button.active::after { content: ""; position: absolute; height: 3px; backgro
   .schedule-settings fieldset { width: 100%; padding: 0; }
   .schedule-settings fieldset + fieldset { margin-top: 18px; padding-top: 18px; border-top: 1px solid var(--line); border-left: 0; }
   .overlap-chart { overflow-x: auto; padding: 20px 0; scroll-behavior: auto; }
-  .overlap-fixed-locations { width: 116px; display: block; position: absolute; z-index: 5; top: 20px; bottom: 20px; left: 0; background: var(--canvas); box-shadow: 1px 0 var(--line); }
+  .overlap-fixed-locations { width: 170px; display: block; position: absolute; z-index: 5; top: 20px; bottom: 20px; left: 0; background: var(--canvas); box-shadow: 1px 0 var(--line); }
   .overlap-fixed-location { height: 64px; display: flex; flex-direction: column; justify-content: center; padding: 8px 10px 8px 20px; border-bottom: 1px solid var(--line); background: var(--canvas); }
   .overlap-fixed-location:first-child { border-top: 1px solid var(--line); }
   .overlap-fixed-location strong { display: flex; align-items: center; gap: 7px; font-size: 14px; }
-  .overlap-fixed-location strong em { padding: 2px 4px; border: 1px solid var(--line); color: var(--muted); font-size: 7px; font-style: normal; letter-spacing: .06em; text-transform: uppercase; }
-  .overlap-fixed-location span { margin-top: 3px; color: var(--muted); font-size: 11px; font-weight: 700; font-variant-numeric: tabular-nums; }
-  .overlap-row { grid-template-columns: 116px 720px; }
+  .overlap-fixed-location strong svg { width: 14px; height: 14px; flex: 0 0 auto; }
+  .overlap-fixed-location span { margin-top: 3px; color: var(--muted); font-size: 22px; font-weight: 500; font-variant-numeric: tabular-nums; line-height: 1.15; }
+  .overlap-row { grid-template-columns: 170px 720px; }
   .overlap-location { visibility: hidden; }
   .region-labels { display: none; }
 }

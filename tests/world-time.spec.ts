@@ -6,7 +6,7 @@ test.beforeEach(async ({ page }) => {
   await page.reload()
 })
 
-test('search selects a timezone and only adds it after confirmation', async ({ page }) => {
+test('search selects a timezone and only adds it after confirmation', async ({ page }, testInfo) => {
   await page.getByRole('combobox', { name: /search cities/i }).fill('Asia/Tokyo')
   await page.getByRole('option', { name: /Tokyo/i }).first().click()
   await expect(page.getByText('Asia / Tokyo').first()).toBeVisible()
@@ -23,6 +23,10 @@ test('search selects a timezone and only adds it after confirmation', async ({ p
   await expect(tokyoCard.locator('.card-country')).toHaveText('Japan')
   await expect(tokyoCard.locator('.card-abbreviation')).toHaveText('· JST')
   const londonCard = page.getByRole('article').filter({ hasText: 'London' })
+  await expect(londonCard.locator('.card-time-icon')).toHaveCount(1)
+  await expect(londonCard.locator('.card-time-icon')).toHaveAttribute('aria-label', /^(Working hours|Nighttime|Outside working hours)$/)
+  await expect(tokyoCard.locator('.card-time-icon')).toHaveCount(1)
+  await page.screenshot({ path: testInfo.outputPath('timezone-card-icons.png'), fullPage: true })
   const londonBounds = (await londonCard.boundingBox())!
   const tokyoBounds = (await tokyoCard.boundingBox())!
   await page.mouse.move(londonBounds.x + londonBounds.width / 2, londonBounds.y + londonBounds.height / 2)
@@ -33,6 +37,15 @@ test('search selects a timezone and only adds it after confirmation', async ({ p
   await expect(page.getByRole('article').first()).toContainText('Tokyo')
   await page.reload()
   await expect(page.locator('.timezone-card').filter({ hasText: 'Tokyo' })).toHaveCount(1)
+})
+
+test('GMT offset fallbacks are not displayed', async ({ page }) => {
+  await page.getByRole('combobox', { name: /search cities/i }).fill('Pacific/Fiji')
+  await page.getByRole('option', { name: /Fiji/i }).first().click()
+
+  const sidebar = page.getByRole('complementary', { name: 'Selected timezone details' })
+  await expect(sidebar.locator('.zone-meta').first()).toHaveText(/^UTC\+12 now$/)
+  await expect(sidebar.getByText(/GMT(?:[+-]\d+)?/i)).toHaveCount(0)
 })
 
 test('map countries and UTC bands update the sidebar without adding cards', async ({ page }, testInfo) => {
@@ -68,12 +81,28 @@ test('country drilldown returns to the originating UTC offset list', async ({ pa
   await expect(page.getByRole('button', { name: 'United Kingdom', exact: true })).toBeVisible()
 })
 
-test('country marker does not block selecting a neighbouring country', async ({ page }) => {
+test('country label does not block selecting a neighbouring country', async ({ page }) => {
   await page.getByRole('button', { name: /Côte d'Ivoire\. Press Enter to select/ }).click()
   await expect(page.getByText("Côte d'Ivoire").first()).toBeVisible()
   await page.getByRole('button', { name: /Ghana\. Press Enter to select/ }).click()
   await expect(page.getByText('Ghana').first()).toBeVisible()
   await expect(page.getByText('Africa / Abidjan').first()).toBeVisible()
+})
+
+test('selecting a timezone card always shows its country label without a map marker', async ({ page }, testInfo) => {
+  await page.getByRole('combobox', { name: /search cities/i }).fill('Europe/Warsaw')
+  await page.getByRole('option', { name: /Warsaw/i }).first().click()
+  await page.getByRole('button', { name: 'Add to comparison' }).click()
+  await page.locator('svg.rsm-svg').click({ position: { x: 5, y: 5 } })
+  await page.getByRole('article').filter({ hasText: 'Warsaw' }).click()
+
+  const label = page.locator('.active-marker')
+  await expect(page.locator('.selected-country')).toHaveCount(1)
+  await expect(label.getByText('Poland')).toBeVisible()
+  await expect(label.getByText('Warsaw')).toBeVisible()
+  await expect(label.locator('.marker-time')).toHaveText(/^\d{1,2}:\d{2} (?:AM|PM)$/)
+  await expect(label.locator('circle:not(.marker-dot)')).toHaveCount(0)
+  await page.screenshot({ path: testInfo.outputPath('location-details.png'), fullPage: true })
 })
 
 test('UTC bands stay synchronized with map pan and zoom', async ({ page }, testInfo) => {
@@ -178,7 +207,11 @@ test('mobile map prioritizes selected country details and wraps cards after dese
 test('renders the responsive comparison experience', async ({ page }, testInfo) => {
   await expect(page.getByText('Current offsets · includes daylight saving')).toBeVisible()
   await expect(page.getByText(/UTC\+1 now/)).toBeVisible()
-  await expect(page.getByText('Standard offset: UTC')).toBeVisible()
+  const sidebar = page.getByRole('complementary', { name: 'Selected timezone details' })
+  await expect(sidebar.locator('.zone-city')).toHaveText('London')
+  await expect(sidebar.locator('.zone-country')).toHaveText('United Kingdom')
+  await expect(sidebar.getByText('Europe / London', { exact: true })).toBeVisible()
+  await expect(page.getByText(/Standard offset:/)).toHaveCount(0)
   await expect(page.getByRole('img', { name: /world map/i })).toBeVisible()
   await expect(page.getByRole('heading', { name: 'Compare' })).toHaveCount(0)
   await expect(page.getByRole('button', { name: 'Timezones', exact: true })).toHaveCount(0)
@@ -191,6 +224,27 @@ test('renders the responsive comparison experience', async ({ page }, testInfo) 
   await expect(page.getByText('Maximum overlap')).toHaveCount(0)
   await expect(page.locator('.overlap-row')).toHaveCount(2)
   await expect(page.locator('.overlap-row').first().locator('.hour-cell')).toHaveCount(24)
+  const firstHour = page.locator('.hour-cell strong').first()
+  await expect(firstHour).toHaveCSS('font-size', '13px')
+  await expect(firstHour).toHaveText(/^12$/)
+  await expect(page.locator('.hour-cell small').first()).toHaveText(/^AM$/)
+  await expect(page.locator('.hour-cell small').first()).toHaveCSS('font-size', '7px')
+  await page.getByRole('button', { name: /change time format/i }).click()
+  await expect(firstHour).toHaveCSS('font-size', '13px')
+  await expect(firstHour).toHaveText(/^00$/)
+  await expect(page.locator('.hour-cell small')).toHaveCount(0)
+  await page.getByRole('button', { name: /change time format/i }).click()
+  await expect(page.getByText('Home', { exact: true })).toHaveCount(0)
+  await expect(page.locator('.overlap-location').first().getByLabel('Home timezone')).toBeAttached()
+  await expect(page.locator('.overlap-location').first().locator('span')).toHaveCSS('font-size', '22px')
+  await expect(page.locator('.overlap-location').first().locator('span')).toHaveCSS('font-weight', '500')
+  await expect(page.locator('.overlap-location').first().locator('span')).not.toContainText('·')
+  await expect(page.locator('.overlap-row').first().locator('.hour-cell em')).toHaveCount(0)
+  const offsetRow = page.locator('.overlap-row').nth(1)
+  expect(await offsetRow.locator('.hour-cell em').count()).toBeGreaterThan(1)
+  const differentDayCell = offsetRow.locator('.hour-cell:has(em)').first()
+  const [dayBox, timeBox] = await Promise.all([differentDayCell.locator('em').boundingBox(), differentDayCell.locator('strong').boundingBox()])
+  expect(dayBox!.y).toBeLessThan(timeBox!.y)
   await expect(page.locator('.current-time').first()).toHaveCSS('background-color', 'rgb(229, 57, 53)')
   await expect(page.locator('.current-time').getByText('Now', { exact: true })).toHaveCount(1)
   if ((await page.viewportSize())!.width <= 800) {
@@ -221,14 +275,23 @@ test('renders the responsive comparison experience', async ({ page }, testInfo) 
     await page.getByRole('button', { name: 'Show schedule settings' }).click()
   }
   await expect(page.getByLabel('Nighttime start')).toHaveValue('21')
-  await expect(page.locator('.hour-cell.work').first()).toHaveCSS('background-color', 'rgb(238, 232, 211)')
-  await expect(page.locator('.hour-cell.other').first()).toHaveCSS('background-color', 'rgb(219, 229, 232)')
-  await expect(page.locator('.hour-cell.night').first()).toHaveCSS('background-color', 'rgb(221, 214, 227)')
+  await expect(page.locator('.hour-cell.work:not(.current-hour)').first()).toHaveCSS('background-color', 'rgb(255, 255, 255)')
+  await expect(page.locator('.hour-cell.work:not(.current-hour)').first()).toHaveCSS('color', 'rgb(0, 0, 0)')
+  await expect(page.locator('.hour-cell.other:not(.current-hour)').first()).toHaveCSS('background-color', 'rgb(191, 191, 191)')
+  await expect(page.locator('.hour-cell.other:not(.current-hour)').first()).toHaveCSS('color', 'rgb(0, 0, 0)')
+  await expect(page.locator('.hour-cell.night:not(.current-hour)').first()).toHaveCSS('background-color', 'rgb(0, 0, 0)')
+  await expect(page.locator('.hour-cell.night:not(.current-hour)').first()).toHaveCSS('color', 'rgb(255, 255, 255)')
+  await expect(page.locator('.hour-cell.current-hour').first()).toHaveCSS('color', 'rgb(229, 57, 53)')
+  await expect(page.locator('.current-time > span')).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)')
   await page.screenshot({ path: testInfo.outputPath('world-time.png'), fullPage: true })
 
   await page.evaluate(() => { document.documentElement.dataset.theme = 'dark' })
-  await expect(page.locator('.hour-cell.work').first()).toHaveCSS('background-color', 'rgb(61, 57, 41)')
-  await expect(page.locator('.hour-cell.other').first()).toHaveCSS('background-color', 'rgb(41, 55, 61)')
-  await expect(page.locator('.hour-cell.night').first()).toHaveCSS('background-color', 'rgb(54, 48, 63)')
+  await expect(page.locator('.hour-cell.work:not(.current-hour)').first()).toHaveCSS('background-color', 'rgb(255, 255, 255)')
+  await expect(page.locator('.hour-cell.work:not(.current-hour)').first()).toHaveCSS('color', 'rgb(0, 0, 0)')
+  await expect(page.locator('.hour-cell.other:not(.current-hour)').first()).toHaveCSS('background-color', 'rgb(191, 191, 191)')
+  await expect(page.locator('.hour-cell.other:not(.current-hour)').first()).toHaveCSS('color', 'rgb(0, 0, 0)')
+  await expect(page.locator('.hour-cell.night:not(.current-hour)').first()).toHaveCSS('background-color', 'rgb(0, 0, 0)')
+  await expect(page.locator('.hour-cell.night:not(.current-hour)').first()).toHaveCSS('color', 'rgb(255, 255, 255)')
+  await expect(page.locator('.hour-cell.current-hour').first()).toHaveCSS('color', 'rgb(255, 81, 77)')
   await page.screenshot({ path: testInfo.outputPath('world-time-dark.png'), fullPage: true })
 })

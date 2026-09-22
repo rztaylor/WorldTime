@@ -36,7 +36,7 @@ export function TimezoneSidebar({ now }: { now: number }) {
     return (
       <aside className="timezone-sidebar" aria-label="Selected timezone details">
         <button className="back-link" onClick={() => document.getElementById('global-search')?.focus()}><ArrowLeft /> All Timezones</button>
-        <div className="zone-display">{offset}</div>
+        <div className="zone-display zone-offset">{offset}</div>
         <h1>Countries at {offset}</h1>
         <p className="zone-title">{matchingCountries.length} countries currently share this offset.</p>
         <p className="section-hint">Current offset, including daylight saving changes. Choose a country to inspect its timezone and cities.</p>
@@ -57,11 +57,12 @@ export function TimezoneSidebar({ now }: { now: number }) {
       <button className="back-link" onClick={() => returnOffset === null ? document.getElementById('global-search')?.focus() : returnToOffset()}>
         <ArrowLeft /> {returnOffset === null ? 'All Timezones' : `Back to ${returnOffset === 0 ? 'UTC' : `UTC${returnOffset > 0 ? '+' : '−'}${Math.abs(returnOffset)}`}`}
       </button>
-      <div className="zone-display">{active.timezone.replaceAll('_', ' ').replace('/', ' / ')}</div>
-      <h1>{active.city}</h1>
-      <p className="zone-title">{active.country}</p>
-      <p className="zone-meta">{details.offset} now · {details.abbreviation}</p>
-      {details.observesDst && <p className="zone-meta">Standard offset: {details.standardOffset}</p>}
+      <div className="zone-display">
+        <span className="zone-city">{active.city}</span>
+        <span className="zone-country">{active.country}</span>
+      </div>
+      <p className="zone-title">{active.timezone.replaceAll('_', ' ').replace('/', ' / ')}</p>
+      <p className="zone-meta">{details.offset} now{details.abbreviation && <> · {details.abbreviation}</>}</p>
       <button className="add-selection" disabled={isAdded || comparisonFull} onClick={() => addLocation(active)}>
         {isAdded ? <Check /> : <Plus />}{isAdded ? 'Added to comparison' : comparisonFull ? 'Comparison full · 10 maximum' : 'Add to comparison'}
       </button>
@@ -73,7 +74,7 @@ export function TimezoneSidebar({ now }: { now: number }) {
         <label className="timezone-filter"><Search /><span className="sr-only">Filter timezones</span><input value={timezoneQuery} onChange={(event) => setTimezoneFilter({ countryCode: active.countryCode, query: event.target.value })} placeholder="PST, Eastern, Los Angeles…" /></label>
         {timezoneOptions.map(({ choice, display }) => (
           <button className={`list-row timezone-option ${choice.timezone === active.timezone ? 'selected' : ''}`} key={choice.timezone} onClick={() => selectDrilldown(choice)}>
-            <span className="timezone-row-copy"><strong>{choice.timezone.replaceAll('_', ' ')}</strong><small>{display.abbreviations.join(' / ')} · {display.currentName}</small></span><small>{describeZone(choice, now).offset}</small>
+            <span className="timezone-row-copy"><strong>{choice.timezone.replaceAll('_', ' ')}</strong><small>{display.abbreviations.length ? `${display.abbreviations.join(' / ')} · ${display.currentName}` : display.currentName}</small></span><small>{describeZone(choice, now).offset}</small>
           </button>
         ))}
         {!timezoneOptions.length && <p className="section-hint">No matching timezones.</p>}

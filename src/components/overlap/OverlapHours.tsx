@@ -1,5 +1,5 @@
 import { useLayoutEffect, useRef, useState, type CSSProperties } from 'react'
-import { SlidersHorizontal } from 'lucide-react'
+import { Home, SlidersHorizontal } from 'lucide-react'
 import { useTimezones } from '../../app/TimezoneProvider'
 import { hourKind } from '../../lib/overlap'
 import { zonedDateTime } from '../../lib/timezone'
@@ -10,9 +10,10 @@ export function OverlapHours({ now }: { now: number }) {
   const [settingsOpen, setSettingsOpen] = useState(false)
   const { selected, workingHours, nightHours, timeFormat, setWorkingHours, setNightHours } = useTimezones()
   const home = selected.find((item) => item.isHome) ?? selected[0]
-  const homeDay = zonedDateTime(now, home.timezone).startOf('day')
+  const homeNow = zonedDateTime(now, home.timezone)
+  const homeDay = homeNow.startOf('day')
   const timePattern = timeFormat === '12h' ? 'h:mm a' : 'HH:mm'
-  const currentPosition = Math.min(100, Math.max(0, zonedDateTime(now, home.timezone).diff(homeDay, 'hours').hours / 24 * 100))
+  const currentPosition = Math.min(100, Math.max(0, homeNow.diff(homeDay, 'hours').hours / 24 * 100))
   const initialCurrentPosition = useRef(currentPosition)
   const hours = Array.from({ length: 24 }, (_, hour) => hour)
 
@@ -71,11 +72,13 @@ export function OverlapHours({ now }: { now: number }) {
                 <div className="overlap-timeline">
                   {hours.map((hour) => {
                     const localTime = homeDay.plus({ hours: hour }).setZone(item.timezone)
+                    const differsFromHomeDay = localTime.toISODate() !== homeDay.toISODate()
                     const kind = hourKind(localTime.hour, workingHours, nightHours)
                     return (
-                      <span className={`hour-cell ${kind}`} key={hour} title={`${item.city}: ${formatHour(localTime.hour, timeFormat)} · ${kind === 'work' ? 'Working hours' : kind === 'night' ? 'Nighttime' : 'Outside working hours'}`}>
+                      <span className={`hour-cell ${kind}${hour === homeNow.hour ? ' current-hour' : ''}`} key={hour} title={`${item.city}: ${formatHour(localTime.hour, timeFormat)} · ${kind === 'work' ? 'Working hours' : kind === 'night' ? 'Nighttime' : 'Outside working hours'}`}>
+                        {differsFromHomeDay && <em>{localTime.toFormat('ccc')}</em>}
                         <strong>{localTime.toFormat(timeFormat === '12h' ? 'h' : 'HH')}</strong>
-                        {timeFormat === '12h' && <small>{localTime.toFormat('a').toLocaleLowerCase()}</small>}
+                        {timeFormat === '12h' && <small>{localTime.toFormat('a')}</small>}
                       </span>
                     )
                   })}
@@ -98,8 +101,8 @@ function LocationLabel({ className, item, now, timePattern }: { className: strin
   const localNow = zonedDateTime(now, item.timezone)
   return (
     <div className={className}>
-      <strong>{item.city}{item.isHome && <em>Home</em>}</strong>
-      <span>{localNow.toFormat(timePattern)} · {localNow.toFormat('ccc')}</span>
+      <strong>{item.city}{item.isHome && <Home aria-label="Home timezone" />}</strong>
+      <span>{localNow.toFormat(timePattern)}</span>
     </div>
   )
 }
