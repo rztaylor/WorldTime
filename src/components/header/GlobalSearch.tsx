@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Search } from 'lucide-react'
+import { Clock3, MapPin, Search } from 'lucide-react'
 import { searchLocations } from '../../lib/search'
 import { useTimezones } from '../../app/TimezoneProvider'
 
@@ -61,13 +61,17 @@ export function GlobalSearch() {
             <button
               id={`result-${index}`}
               role="option"
+              aria-label={`${result.location.kind === 'timezone' ? 'Timezone' : result.group}: ${result.location.city}, ${result.detail}`}
               aria-selected={highlighted === index}
               className={highlighted === index ? 'highlighted' : ''}
               key={`${result.group}-${result.location.id}`}
               onMouseDown={(event) => event.preventDefault()}
               onClick={() => choose(index)}
             >
-              <span><small>{result.group}</small><strong>{result.location.city}</strong></span>
+              <span className="search-result-name">
+                {result.location.kind === 'timezone' ? <Clock3 aria-hidden="true" /> : <MapPin aria-hidden="true" />}
+                <span><small>{result.location.kind === 'timezone' ? 'Timezone' : result.group}</small><strong>{result.location.city}</strong></span>
+              </span>
               <span>{result.detail}</span>
             </button>
           )) : <p>No matching places. Try a major city or IANA timezone.</p>}

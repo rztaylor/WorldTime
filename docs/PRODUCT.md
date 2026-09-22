@@ -918,9 +918,17 @@ Honolulu
 ```
 
 Keep the desktop map/sidebar row at a stable height and scroll the sidebar internally.
-Show a short list of common timezones first, with a filter that searches IANA names,
-current and seasonal abbreviations (`PST`, `EDT`), and long names (`Eastern`). Each
-result shows the IANA name, abbreviations, current long name, and UTC offset.
+Show a compact mixed list of common cities and friendly timezone names. Use a location
+icon for cities and a clock icon for named timezones, with the current UTC offset aligned
+on the right. Do not repeat a named timezone when a displayed city already represents it.
+A filter searches every represented region by city, IANA name, current and seasonal
+abbreviations (`PST`, `EDT`), and friendly names (`Eastern Time`). The exhaustive IANA
+list remains behind search instead of filling the default sidebar.
+
+Only the abbreviation currently in effect is displayed, but both standard and daylight
+abbreviations remain searchable throughout the year. Abbreviations are display and search
+metadata, never canonical identities. UTC is a first-class named timezone that can be
+inspected and explicitly added to the comparison.
 
 For smaller countries with one timezone, add immediately.
 

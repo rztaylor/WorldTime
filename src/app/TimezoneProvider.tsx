@@ -75,7 +75,7 @@ export function TimezoneProvider({ children }: { children: ReactNode }) {
     setInspectedOffset(null)
     setReturnOffset(null)
     setInspectedLocation(location)
-    setMapCountrySelected(true)
+    setMapCountrySelected(location.kind !== 'timezone')
     update((current) => ({
       ...current,
       activeTimezone: location.timezone,
@@ -85,7 +85,7 @@ export function TimezoneProvider({ children }: { children: ReactNode }) {
   const inspectLocation = (location: LocationRecord) => {
     setInspectedOffset(null)
     setInspectedLocation(location)
-    setMapCountrySelected(true)
+    setMapCountrySelected(location.kind !== 'timezone')
     update((current) => ({ ...current, activeTimezone: location.timezone }))
   }
 

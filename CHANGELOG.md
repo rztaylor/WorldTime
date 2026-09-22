@@ -6,6 +6,7 @@ All notable changes follow Keep a Changelog categories.
 
 ### Added
 
+- Friendly named-timezone and UTC search results that can be added directly to comparisons.
 - A favicon-first World Time app icon.
 - Initial World Time application with an interactive SVG map, live IANA timezone clocks, local preference persistence, reorderable comparison cards, search, Home timezone controls, and overlap-hours visualization.
 - Responsive monochrome interface based on the approved editorial design reference.
@@ -16,6 +17,7 @@ All notable changes follow Keep a Changelog categories.
 
 ### Changed
 
+- Combined country cities and timezone regions into one compact, icon-labelled sidebar list, with seasonal abbreviations retained as search aliases.
 - Expanded comparisons to ten timezones in a two-row, five-column desktop grid and removed the redundant Add City placeholder card.
 - Moved time comparison into a dedicated **Compare** view with per-location, labeled hourly cells and persistent work/night ranges rendered in subtle theme-aware yellow, blue, and purple.
 - Restyled application scrollbars with slim, rounded, theme-aware tracks and thumbs.
