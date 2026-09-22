@@ -21,12 +21,12 @@
   --scrollbar-track: #ececea;
   --scrollbar-thumb: #aaa9a5;
   --scrollbar-thumb-hover: #777773;
-  --hour-work: #eee8d3;
-  --hour-other: #dbe5e8;
-  --hour-night: #ddd6e3;
-  --hour-work-text: #24231e;
-  --hour-other-text: #202426;
-  --hour-night-text: #252229;
+  --hour-work: #fff;
+  --hour-other: #bfbfbf;
+  --hour-night: #000;
+  --hour-work-text: #000;
+  --hour-other-text: #000;
+  --hour-night-text: #fff;
 }
 
 :root[data-theme="dark"] {
@@ -47,11 +47,11 @@
   --scrollbar-track: #242423;
   --scrollbar-thumb: #575754;
   --scrollbar-thumb-hover: #777773;
-  --hour-work: #3d3929;
-  --hour-other: #29373d;
-  --hour-night: #36303f;
-  --hour-work-text: #fff;
-  --hour-other-text: #fff;
+  --hour-work: #fff;
+  --hour-other: #bfbfbf;
+  --hour-night: #000;
+  --hour-work-text: #000;
+  --hour-other-text: #000;
   --hour-night-text: #fff;
 }
 
@@ -238,9 +238,10 @@ nav button.active::after { content: ""; position: absolute; height: 3px; backgro
 .hour-cell.work { color: var(--hour-work-text); background: var(--hour-work); }
 .hour-cell.other { color: var(--hour-other-text); background: var(--hour-other); }
 .hour-cell.night { color: var(--hour-night-text); background: var(--hour-night); }
+.hour-cell.current-hour { color: var(--accent); }
 .current-time { width: 2px; position: absolute; z-index: 2; top: -1px; bottom: -1px; left: var(--current-position); background: var(--accent); pointer-events: none; }
 .current-time::before { content: ""; width: 6px; height: 6px; position: absolute; top: -3px; left: -2px; border-radius: 50%; background: var(--accent); }
-.current-time > span { position: absolute; top: 5px; left: 5px; padding: 1px 2px; color: var(--accent); background: var(--canvas); font-size: 7px; font-weight: 900; letter-spacing: .08em; line-height: 1; text-transform: uppercase; }
+.current-time > span { position: absolute; top: 5px; left: 5px; padding: 1px 2px; color: var(--accent); font-size: 7px; font-weight: 700; letter-spacing: .06em; line-height: 1; text-transform: uppercase; }
 
 @media (max-width: 1180px) {
   .site-header { gap: 24px; }

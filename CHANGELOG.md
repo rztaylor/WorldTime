@@ -27,6 +27,7 @@ All notable changes follow Keep a Changelog categories.
 - Removed redundant card-strip guidance and aligned each card's UTC offset beside its timezone name.
 - Improved mobile map and comparison layouts with wrapping card rows, selection-aware card visibility, compact horizontal map overlays, an initially centred current-time schedule, and collapsible schedule controls.
 - Made Compare-row local times twice as large, replaced the Home text badge with a home icon, unified 12/24-hour cell typography, and labelled every hour whose weekday differs from Home.
+- Reworked Compare tiles into a consistent monochrome night/work/other palette across both themes, with red text and a positional NOW line marking the current time.
 
 ### Fixed
 
