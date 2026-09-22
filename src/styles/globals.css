@@ -76,7 +76,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .site-header { height: 72px; display: flex; align-items: center; gap: clamp(20px, 4vw, 58px); padding: 0 20px; border-bottom: 1px solid var(--line); background: var(--canvas); position: relative; z-index: 20; }
 .brand, .footer-brand { color: var(--ink); text-decoration: none; display: flex; align-items: center; gap: 11px; white-space: nowrap; }
 .brand { padding: 0; border: 0; background: none; text-align: left; cursor: pointer; }
-.brand > svg { width: 30px; height: 30px; stroke-width: 1.8; }
+.brand > svg, .brand-logo { width: 30px; height: 30px; stroke-width: 1.8; }
 .brand span { display: flex; flex-direction: column; }
 .brand strong { font-size: 19px; line-height: 1; letter-spacing: -0.04em; }
 .brand small { font-size: 10px; margin-top: 3px; }
@@ -144,11 +144,10 @@ nav button.active::after { content: ""; position: absolute; height: 3px; backgro
 .timezone-row-copy small { margin-top: 2px; font-weight: 400; }
 
 .map-panel { min-width: 0; height: 540px; position: relative; overflow: hidden; background: var(--subtle); }
-.timezone-bands { height: 48px; position: relative; overflow: hidden; border-bottom: 1px solid var(--line); background: var(--canvas); }
-.offset-rail-label { position: absolute; z-index: 2; inset: 0 0 auto; height: 17px; display: grid; place-items: center; border-bottom: 1px solid var(--line); background: var(--canvas); color: var(--muted); font-size: 8px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; pointer-events: none; }
-.timezone-bands button { position: absolute; top: 17px; bottom: 0; display: grid; place-items: center; min-width: 0; padding: 0; border: 0; border-left: 1px solid var(--line); background: transparent; color: var(--muted); font-size: 9px; cursor: pointer; }
+.timezone-bands { height: 31px; position: relative; overflow: hidden; border-bottom: 1px solid var(--line); background: var(--canvas); }
+.timezone-bands button { position: absolute; top: 0; bottom: 0; display: grid; place-items: center; min-width: 0; padding: 0; border: 0; border-left: 1px solid var(--line); background: transparent; color: var(--muted); font-size: 9px; cursor: pointer; }
 .timezone-bands button:hover, .timezone-bands button.active { background: color-mix(in srgb, var(--accent) 14%, transparent); color: var(--ink); font-weight: 800; }
-.map-canvas { position: absolute; inset: 48px 0 0; display: grid; place-items: center; touch-action: pan-y pinch-zoom; }
+.map-canvas { position: absolute; inset: 31px 0 0; display: grid; place-items: center; touch-action: pan-y pinch-zoom; }
 .map-canvas > svg:not(.band-lines) { width: 100%; height: 100%; max-height: 470px; position: relative; z-index: 1; }
 .band-lines { position: absolute; inset: 0; width: 100%; height: 100%; }
 .band-lines rect { fill: transparent; stroke: var(--line); stroke-width: .55; stroke-opacity: .62; vector-effect: non-scaling-stroke; }
@@ -261,7 +260,7 @@ nav button.active::after { content: ""; position: absolute; height: 3px; backgro
   body { background: var(--canvas); }
   .app-shell { width: 100%; margin: 0; border: 0; border-radius: 0; box-shadow: none; }
   .site-header { height: 108px; padding: 0 14px 48px; }
-  .brand > svg { width: 29px; }
+  .brand > svg, .brand-logo { width: 29px; }
   .brand strong { font-size: 17px; }
   .brand small { display: none; }
   nav { gap: 14px; }

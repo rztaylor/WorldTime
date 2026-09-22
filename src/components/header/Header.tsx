@@ -1,4 +1,4 @@
-import { Clock3, Globe2, Home, Monitor, Moon, Sun } from 'lucide-react'
+import { Clock3, Home, Monitor, Moon, Sun } from 'lucide-react'
 import { GlobalSearch } from './GlobalSearch'
 import { useTimezones } from '../../app/TimezoneProvider'
 
@@ -11,7 +11,7 @@ export function Header({ view, onViewChange }: { view: WorkspaceView; onViewChan
   return (
     <header className="site-header">
       <button className="brand" type="button" onClick={() => onViewChange('map')} aria-label="World Time home">
-        <Globe2 aria-hidden="true" />
+        <img className="brand-logo" src="/favicon.svg" alt="" aria-hidden="true" />
         <span><strong>WORLD TIME</strong><small>People. Places. Better Timing.</small></span>
       </button>
       <nav aria-label="Primary navigation">

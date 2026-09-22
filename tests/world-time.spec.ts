@@ -205,7 +205,7 @@ test('mobile map prioritizes selected country details and wraps cards after dese
 })
 
 test('renders the responsive comparison experience', async ({ page }, testInfo) => {
-  await expect(page.getByText('Current offsets · includes daylight saving')).toBeVisible()
+  await expect(page.locator('.offset-rail-label')).toHaveCount(0)
   await expect(page.getByText(/UTC\+1 now/)).toBeVisible()
   const sidebar = page.getByRole('complementary', { name: 'Selected timezone details' })
   await expect(sidebar.locator('.zone-city')).toHaveText('London')
