@@ -34,6 +34,7 @@ All notable changes follow Keep a Changelog categories.
 
 ### Fixed
 
+- Aligned half-hour and quarter-hour timezones correctly in Compare using 15-minute grid slots while retaining full-hour boxes.
 - Removed GMT-derived offset labels from the interface so UTC is the sole displayed offset standard.
 - Timezone-card selection now consistently shows the country label on the map, including catalogue locations without stored coordinates, and the redundant country marker has been removed.
 - Country drilldowns now return to their originating UTC-offset list, and country details no longer repeat the country name in a redundant section.

@@ -14,8 +14,8 @@ export function OverlapHours({ now }: { now: number }) {
   const homeDay = homeNow.startOf('day')
   const timePattern = timeFormat === '12h' ? 'h:mm a' : 'HH:mm'
   const currentPosition = Math.min(100, Math.max(0, homeNow.diff(homeDay, 'hours').hours / 24 * 100))
+  const currentSlot = Math.min(95, Math.floor(currentPosition / 100 * 96))
   const initialCurrentPosition = useRef(currentPosition)
-  const hours = Array.from({ length: 24 }, (_, hour) => hour)
 
   useLayoutEffect(() => {
     const chart = chartRef.current
@@ -66,19 +66,28 @@ export function OverlapHours({ now }: { now: number }) {
         <div ref={chartRef} className="overlap-chart" aria-label={`Working hours for ${selected.length} locations. Times shown in ${home.city}.`}>
           <div className="overlap-rows">
           {selected.map((item, index) => {
+            const hourSegments = localHourSegments(homeDay.toMillis(), item.timezone)
             return (
               <div className="overlap-row" key={item.id}>
                 <LocationLabel className="overlap-location" item={item} now={now} timePattern={timePattern} />
                 <div className="overlap-timeline">
-                  {hours.map((hour) => {
-                    const localTime = homeDay.plus({ hours: hour }).setZone(item.timezone)
+                  {hourSegments.map(({ localTime, slotCount, startSlot }) => {
                     const differsFromHomeDay = localTime.toISODate() !== homeDay.toISODate()
                     const kind = hourKind(localTime.hour, workingHours, nightHours)
                     return (
-                      <span className={`hour-cell ${kind}${hour === homeNow.hour ? ' current-hour' : ''}`} key={hour} title={`${item.city}: ${formatHour(localTime.hour, timeFormat)} · ${kind === 'work' ? 'Working hours' : kind === 'night' ? 'Nighttime' : 'Outside working hours'}`}>
-                        {differsFromHomeDay && <em>{localTime.toFormat('ccc')}</em>}
-                        <strong>{localTime.toFormat(timeFormat === '12h' ? 'h' : 'HH')}</strong>
-                        {timeFormat === '12h' && <small>{localTime.toFormat('a')}</small>}
+                      <span
+                        className={`hour-cell ${kind}${currentSlot >= startSlot && currentSlot < startSlot + slotCount ? ' current-hour' : ''}`}
+                        aria-hidden={slotCount < 4 ? true : undefined}
+                        data-slot-count={slotCount}
+                        key={`${localTime.toISO()}-${startSlot}`}
+                        style={{ gridColumn: `span ${slotCount}` }}
+                        title={slotCount === 4 ? `${item.city}: ${formatHour(localTime.hour, timeFormat)} · ${kind === 'work' ? 'Working hours' : kind === 'night' ? 'Nighttime' : 'Outside working hours'}` : undefined}
+                      >
+                        {slotCount === 4 && <>
+                          {differsFromHomeDay && <em>{localTime.toFormat('ccc')}</em>}
+                          <strong>{localTime.toFormat(timeFormat === '12h' ? 'h' : 'HH')}</strong>
+                          {timeFormat === '12h' && <small>{localTime.toFormat('a')}</small>}
+                        </>}
                       </span>
                     )
                   })}
@@ -95,6 +104,25 @@ export function OverlapHours({ now }: { now: number }) {
       </div>
     </section>
   )
+}
+
+function localHourSegments(homeDayTimestamp: number, timezone: string) {
+  const quarterHours = Array.from({ length: 96 }, (_, slot) => ({
+    localTime: zonedDateTime(homeDayTimestamp + slot * 15 * 60 * 1000, timezone),
+    slot,
+  }))
+
+  return quarterHours.reduce<Array<{ localTime: ReturnType<typeof zonedDateTime>; slotCount: number; startSlot: number }>>((segments, quarterHour) => {
+    const previous = segments.at(-1)
+    const localHour = quarterHour.localTime.toFormat('yyyy-LL-dd-HH-ZZZ')
+    const previousHour = previous?.localTime.toFormat('yyyy-LL-dd-HH-ZZZ')
+    if (previous && localHour === previousHour) {
+      previous.slotCount += 1
+    } else {
+      segments.push({ localTime: quarterHour.localTime, slotCount: 1, startSlot: quarterHour.slot })
+    }
+    return segments
+  }, [])
 }
 
 function LocationLabel({ className, item, now, timePattern }: { className: string; item: ReturnType<typeof useTimezones>['selected'][number]; now: number; timePattern: string }) {

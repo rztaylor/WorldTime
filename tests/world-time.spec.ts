@@ -295,3 +295,35 @@ test('renders the responsive comparison experience', async ({ page }, testInfo) 
   await expect(page.locator('.hour-cell.current-hour').first()).toHaveCSS('color', 'rgb(255, 81, 77)')
   await page.screenshot({ path: testInfo.outputPath('world-time-dark.png'), fullPage: true })
 })
+
+test('displaces local hour boxes for half-hour timezone differences', async ({ page }, testInfo) => {
+  await page.getByRole('combobox', { name: /search cities/i }).fill('Asia/Kolkata')
+  await page.getByRole('option', { name: /Delhi/i }).first().click()
+  await page.getByRole('button', { name: 'Add to comparison' }).click()
+  await page.getByRole('button', { name: 'Compare' }).click()
+
+  const londonRow = page.locator('.overlap-row').filter({ has: page.locator('.overlap-location', { hasText: 'London' }) })
+  const delhiRow = page.locator('.overlap-row').filter({ has: page.locator('.overlap-location', { hasText: 'Delhi' }) })
+  const londonFirstHour = londonRow.locator('.hour-cell').first()
+  const delhiFirstPartialHour = delhiRow.locator('.hour-cell').first()
+  const delhiFirstFullHour = delhiRow.locator('.hour-cell').nth(1)
+
+  await expect(londonRow.locator('.hour-cell')).toHaveCount(24)
+  await expect(delhiRow.locator('.hour-cell')).toHaveCount(25)
+  await expect(londonFirstHour).toHaveAttribute('data-slot-count', '4')
+  await expect(delhiFirstPartialHour).toHaveAttribute('data-slot-count', '2')
+  await expect(delhiFirstFullHour).toHaveAttribute('data-slot-count', '4')
+  await expect(delhiFirstPartialHour).toBeEmpty()
+  await expect(delhiFirstPartialHour).not.toHaveAttribute('title')
+  await expect(delhiFirstFullHour).not.toBeEmpty()
+
+  const [londonBox, delhiPartialBox, delhiFullBox] = await Promise.all([
+    londonFirstHour.boundingBox(),
+    delhiFirstPartialHour.boundingBox(),
+    delhiFirstFullHour.boundingBox(),
+  ])
+  expect(delhiPartialBox!.width).toBeCloseTo(londonBox!.width / 2, 0)
+  expect(delhiFullBox!.width).toBeCloseTo(londonBox!.width, 0)
+  expect(delhiFullBox!.x).toBeCloseTo(londonBox!.x + londonBox!.width / 2, 0)
+  await page.screenshot({ path: testInfo.outputPath('quarter-hour-grid.png'), fullPage: true })
+})
