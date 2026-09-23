@@ -268,6 +268,20 @@ test('desktop workspace keeps cards beneath the map and the sidebar at full work
   expect(await page.locator('.card-row').evaluate((element) => getComputedStyle(element).gridTemplateColumns.split(' ').length)).toBe(5)
 })
 
+test('short desktop windows shrink the map and scroll the sidebar within the viewport', async ({ page }) => {
+  test.skip((await page.viewportSize())!.width <= 800, 'Desktop layout assertion')
+  await page.setViewportSize({ width: 1440, height: 700 })
+  const shell = await page.locator('.app-shell').boundingBox()
+  const map = await page.locator('.map-panel').boundingBox()
+  const sidebar = page.getByRole('complementary', { name: 'Selected timezone details' })
+  expect(shell!.y + shell!.height).toBeLessThanOrEqual(700)
+  expect(map!.height).toBeGreaterThanOrEqual(300)
+  expect(map!.height).toBeLessThan(500)
+  expect(await sidebar.evaluate((element) => element.scrollHeight > element.clientHeight)).toBe(true)
+  await page.evaluate(() => window.scrollTo(0, 100))
+  expect(await page.evaluate(() => window.scrollY)).toBe(0)
+})
+
 test('mobile map prioritizes selected country details and wraps cards after deselection', async ({ page }) => {
   test.skip((await page.viewportSize())!.width > 800, 'Mobile layout assertion')
   const search = page.getByRole('combobox', { name: /search cities/i })
