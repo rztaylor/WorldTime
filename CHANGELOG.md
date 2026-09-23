@@ -18,6 +18,7 @@ All notable changes follow Keep a Changelog categories.
 
 ### Changed
 
+- Sized the desktop workspace to the window, allowing the map to shrink while timezone details and comparison cards scroll within their sections.
 - Country panels keep a short default city list while searching the wider catalog; selecting a different city in an existing timezone changes the comparison card's place label.
 - Combined country cities and timezone regions into one compact, icon-labelled sidebar list, with seasonal abbreviations retained as search aliases.
 - Expanded comparisons to ten timezones in a two-row, five-column desktop grid and removed the redundant Add City placeholder card.
