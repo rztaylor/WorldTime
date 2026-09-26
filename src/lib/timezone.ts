@@ -31,11 +31,73 @@ export const offsetLabel = (timestamp: number, timezone: string) =>
 export const zoneName = (timestamp: number, timezone: string) =>
   zonedDateTime(timestamp, timezone).offsetNameShort ?? timezone
 
+const friendlyZoneNames: Record<string, string> = {
+  UTC: 'UTC',
+  'America/New_York': 'Eastern Time',
+  'America/Chicago': 'Central Time',
+  'America/Denver': 'Mountain Time',
+  'America/Los_Angeles': 'Pacific Time',
+  'America/Anchorage': 'Alaska Time',
+  'Pacific/Honolulu': 'Hawaii Time',
+  'Europe/London': 'United Kingdom Time',
+  'Europe/Paris': 'Central European Time',
+  'Europe/Helsinki': 'Eastern European Time',
+}
+
+export const friendlyZoneName = (timezone: string, timestamp: number) => {
+  const override = friendlyZoneNames[timezone]
+  if (override) return override
+  const current = zonedDateTime(timestamp, timezone).setLocale('en-US')
+  const longName = current.offsetNameLong
+  if (!longName || isGmtLabel(longName)) return timezone.split('/').at(-1)?.replaceAll('_', ' ') ?? timezone
+  if (/ (?:Daylight|Summer) Time$/.test(longName)) return longName.replace(/ (?:Daylight|Summer) Time$/, ' Time')
+  if (/ Standard Time$/.test(longName)) {
+    const januaryOffset = DateTime.fromObject({ year: current.year, month: 1, day: 15 }, { zone: timezone }).offset
+    const julyOffset = DateTime.fromObject({ year: current.year, month: 7, day: 15 }, { zone: timezone }).offset
+    if (januaryOffset !== julyOffset) return longName.replace(/ Standard Time$/, ' Time')
+  }
+  return longName
+}
+
+export const asNamedTimezone = (location: LocationRecord, timestamp: number): LocationRecord => ({
+  ...location,
+  id: `timezone-${location.timezone.toLocaleLowerCase().replaceAll('/', '-')}`,
+  city: friendlyZoneName(location.timezone, timestamp),
+  kind: 'timezone',
+})
+
+export const utcTimezone = (timestamp: number): LocationRecord => asNamedTimezone({
+  id: 'utc',
+  city: 'UTC',
+  country: 'Coordinated Universal Time',
+  countryCode: '',
+  timezone: 'UTC',
+  latitude: 0,
+  longitude: 0,
+  aliases: ['UTC'],
+}, timestamp)
+
+export const gmtTimezone = (): LocationRecord => ({
+  id: 'timezone-etc-gmt',
+  city: 'Greenwich Mean Time',
+  country: 'United Kingdom',
+  countryCode: 'GB',
+  timezone: 'Etc/GMT',
+  latitude: 51.4826,
+  longitude: 0,
+  aliases: ['GMT'],
+  kind: 'timezone',
+})
+
 const isGmtLabel = (value: string) => /^GMT(?:[+-]\d{1,2}(?::?\d{2})?)?$/i.test(value.trim())
 
-export const zoneAbbreviation = (timestamp: number, location: Pick<LocationRecord, 'timezone' | 'aliases'>) => {
+export const zoneAbbreviation = (timestamp: number, location: Pick<LocationRecord, 'timezone' | 'aliases' | 'kind'>) => {
+  if (location.timezone === 'Etc/GMT') return 'GMT'
+  const localeAbbreviation = ['en-US', 'en-GB']
+    .map((locale) => zonedDateTime(timestamp, location.timezone).setLocale(locale).offsetNameShort)
+    .find((name): name is string => Boolean(name && !isGmtLabel(name)))
   const abbreviation = !location.aliases?.length
-    ? zoneName(timestamp, location.timezone)
+    ? location.kind === 'timezone' ? localeAbbreviation ?? zoneName(timestamp, location.timezone) : zoneName(timestamp, location.timezone)
     : location.aliases.length === 1
       ? location.aliases[0]
       : location.aliases[zonedDateTime(timestamp, location.timezone).isInDST ? 1 : 0]
@@ -65,13 +127,16 @@ export const describeZone = (location: LocationRecord, timestamp: number) => {
 export const zoneDisplayNames = (timezone: string, timestamp: number) => {
   const current = zonedDateTime(timestamp, timezone).setLocale('en-US')
   const seasonal = [1, 7].map((month) => DateTime.fromObject({ year: current.year, month, day: 15 }, { zone: timezone }).setLocale('en-US'))
-  const rawAbbreviations = [...new Set([current, ...seasonal].map((time) => time.offsetNameShort).filter(Boolean))] as string[]
+  const curatedAliases = locations.find((location) => location.timezone === timezone)?.aliases ?? []
+  const localeAbbreviations = ['en-US', 'en-GB'].flatMap((locale) => [current, ...seasonal].map((time) => time.setLocale(locale).offsetNameShort))
+  const rawAbbreviations = [...new Set([...curatedAliases, ...localeAbbreviations].filter(Boolean))] as string[]
   const names = [...new Set([current, ...seasonal].map((time) => time.offsetNameLong).filter(Boolean))] as string[]
   const rawCurrentName = current.offsetNameLong ?? timezone
   return {
     abbreviations: rawAbbreviations.filter((abbreviation) => !isGmtLabel(abbreviation)),
+    friendlyName: friendlyZoneName(timezone, timestamp),
     currentName: isGmtLabel(rawCurrentName) ? timezone : rawCurrentName,
-    searchText: [timezone, ...rawAbbreviations, ...names].join(' ').toLocaleLowerCase(),
+    nameSearchText: [friendlyZoneName(timezone, timestamp), ...names].join(' ').toLocaleLowerCase(),
   }
 }
 

@@ -1,6 +1,6 @@
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { ChevronLeft, ChevronRight, createLucideIcon, GripVertical, Home, Moon, Star, Sun, X } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Clock3, createLucideIcon, GripVertical, Home, Moon, Star, Sun, X } from 'lucide-react'
 import { useTimezones } from '../../app/TimezoneProvider'
 import { hourKind } from '../../lib/overlap'
 import { dayRelation, formatClockParts, offsetLabel, zoneAbbreviation, zonedDateTime } from '../../lib/timezone'
@@ -44,7 +44,7 @@ export function SortableTimezoneCard({ timezone, now, index, total }: Props) {
     >
       <div className="card-topline">
         <button className="drag-handle" {...attributes} aria-label={`Reorder ${timezone.city}`}><GripVertical /></button>
-        <span>{timezone.isHome && <Home aria-label="Home timezone" />}{timezone.city}</span>
+        <span>{timezone.isHome && <Home aria-label="Home timezone" />}{timezone.kind === 'timezone' && <Clock3 aria-label="Named timezone" />}{timezone.city}</span>
         <button className="remove-card" onPointerDown={(event) => event.stopPropagation()} onClick={(event) => { event.stopPropagation(); removeLocation(timezone.id) }} disabled={total === 1} aria-label={`Remove ${timezone.city}`}><X /></button>
       </div>
       <div className="card-time">
@@ -53,8 +53,8 @@ export function SortableTimezoneCard({ timezone, now, index, total }: Props) {
         <TimeIcon className="card-time-icon" aria-label={timeIconLabel} />
       </div>
       <div className="card-zone">
-        <span className="card-country">{timezone.country}</span>
-        {abbreviation && <span className="card-abbreviation">· {abbreviation}</span>}
+        {timezone.kind !== 'timezone' && <span className="card-country">{timezone.country}</span>}
+        {abbreviation && <span className="card-abbreviation">{timezone.kind !== 'timezone' && '· '}{abbreviation}</span>}
         {relation !== 'Today' && <em>{relation}</em>}
         <strong>{offsetLabel(now, timezone.timezone)}</strong>
       </div>

@@ -6,8 +6,48 @@ test.beforeEach(async ({ page }) => {
   await page.reload()
 })
 
+test('search results keep type, name, and detail readable', async ({ page }, testInfo) => {
+  await page.getByRole('combobox', { name: /search cities/i }).fill('cst')
+  const result = page.getByRole('option', { name: /Timezone: Central Time/i })
+  await expect(result).toContainText('CST (seasonal)')
+  await expect(page.getByRole('option', { name: /Timezone: China Standard Time/i })).toContainText('CST')
+  await expect(page.getByRole('option', { name: /Cities:/i })).toHaveCount(0)
+  const icon = result.locator('.search-result-name svg')
+  const type = result.locator('.search-result-name small')
+  const name = result.locator('.search-result-name strong')
+  const detail = result.locator(':scope > span:last-child')
+  const [iconBox, typeBox, nameBox, detailBox] = await Promise.all([
+    icon.boundingBox(), type.boundingBox(), name.boundingBox(), detail.boundingBox(),
+  ])
+  expect(iconBox!.x + iconBox!.width).toBeLessThan(typeBox!.x)
+  expect(typeBox!.y + typeBox!.height).toBeLessThanOrEqual(nameBox!.y)
+  expect(nameBox!.x + nameBox!.width).toBeLessThan(detailBox!.x)
+  await page.screenshot({ path: testInfo.outputPath('search-results.png') })
+  await page.getByRole('combobox', { name: /search cities/i }).fill('est')
+  await expect(page.getByRole('option', { name: /Timezone: Eastern Time/i })).toContainText('EST')
+  await expect(page.getByRole('option', { name: /Cities: Lisbon/i })).toHaveCount(0)
+  await page.getByRole('combobox', { name: /search cities/i }).fill('Singapore')
+  await expect(page.getByRole('option', { name: /Cities: Singapore/i })).toBeVisible()
+  await expect(page.getByRole('option', { name: /Timezone: Singapore Standard Time/i })).toBeVisible()
+})
+
+test('country details place the DST note before the add button with room above filtering', async ({ page }, testInfo) => {
+  await page.getByRole('button', { name: /United States of America\. Press Enter to select/ }).click()
+  const sidebar = page.getByRole('complementary', { name: 'Selected timezone details' })
+  const note = await sidebar.locator('.dst-note').boundingBox()
+  const add = await sidebar.getByRole('button', { name: 'Add to comparison' }).boundingBox()
+  const hint = await sidebar.getByText(/Choose a common place/).boundingBox()
+  const filter = await sidebar.getByRole('textbox', { name: 'Filter places and timezones' }).boundingBox()
+  expect(note!.y + note!.height).toBeLessThan(add!.y)
+  expect(filter!.y - (hint!.y + hint!.height)).toBeGreaterThanOrEqual(8)
+  await page.getByRole('combobox', { name: /search cities/i }).fill('Honolulu')
+  await page.getByRole('option', { name: /Cities: Honolulu/i }).click()
+  await expect(sidebar.locator('.dst-note')).toHaveCount(0)
+  await page.screenshot({ path: testInfo.outputPath('country-details.png') })
+})
+
 test('search selects a timezone and only adds it after confirmation', async ({ page }, testInfo) => {
-  await page.getByRole('combobox', { name: /search cities/i }).fill('Asia/Tokyo')
+  await page.getByRole('combobox', { name: /search cities/i }).fill('Tokyo')
   await page.getByRole('option', { name: /Tokyo/i }).first().click()
   await expect(page.getByText('Asia / Tokyo').first()).toBeVisible()
   await expect(page.getByRole('article').filter({ hasText: 'Tokyo' })).toHaveCount(0)
@@ -89,19 +129,13 @@ test('country label does not block selecting a neighbouring country', async ({ p
   await expect(page.getByText('Africa / Abidjan').first()).toBeVisible()
 })
 
-test('selecting a timezone card always shows its country label without a map marker', async ({ page }, testInfo) => {
+test('selecting an IANA timezone does not imply a map location', async ({ page }, testInfo) => {
   await page.getByRole('combobox', { name: /search cities/i }).fill('Europe/Warsaw')
-  await page.getByRole('option', { name: /Warsaw/i }).first().click()
+  await page.getByRole('option', { name: /Timezone: Central European Time/i }).click()
   await page.getByRole('button', { name: 'Add to comparison' }).click()
-  await page.locator('svg.rsm-svg').click({ position: { x: 5, y: 5 } })
-  await page.getByRole('article').filter({ hasText: 'Warsaw' }).click()
-
-  const label = page.locator('.active-marker')
-  await expect(page.locator('.selected-country')).toHaveCount(1)
-  await expect(label.getByText('Poland')).toBeVisible()
-  await expect(label.getByText('Warsaw')).toBeVisible()
-  await expect(label.locator('.marker-time')).toHaveText(/^\d{1,2}:\d{2} (?:AM|PM)$/)
-  await expect(label.locator('circle:not(.marker-dot)')).toHaveCount(0)
+  await expect(page.getByRole('article').filter({ hasText: 'Central European Time' })).toBeVisible()
+  await expect(page.locator('.selected-country')).toHaveCount(0)
+  await expect(page.locator('.active-marker')).toHaveCount(0)
   await page.screenshot({ path: testInfo.outputPath('location-details.png'), fullPage: true })
 })
 
@@ -134,16 +168,84 @@ test('UTC bands stay synchronized with map pan and zoom', async ({ page }, testI
   await page.screenshot({ path: testInfo.outputPath('panned-zoomed-map.png'), fullPage: true })
 })
 
-test('large countries keep a scrollable, searchable timezone list', async ({ page }, testInfo) => {
+test('large countries keep a compact, searchable timezone list', async ({ page }, testInfo) => {
   await page.getByRole('button', { name: /United States of America\. Press Enter to select/ }).click()
   const sidebar = page.getByRole('complementary', { name: 'Selected timezone details' })
-  expect(await sidebar.evaluate((element) => element.scrollHeight > element.clientHeight)).toBe(true)
-  const selectedTimezone = sidebar.locator('.timezone-option.selected')
+  const selectedTimezone = sidebar.locator('.compact-choice.selected')
   await expect(selectedTimezone).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)')
   await expect(selectedTimezone).toHaveCSS('border-left-color', 'rgb(229, 57, 53)')
-  await page.getByRole('textbox', { name: 'Filter timezones' }).fill('PST')
-  await expect(page.getByRole('button', { name: /America\/Los Angeles.*PDT.*PST/i })).toBeVisible()
+  await page.getByRole('textbox', { name: 'Filter places and timezones' }).fill('PST')
+  await expect(sidebar.getByRole('button', { name: /Los Angeles.*UTC−7/i })).toHaveCount(0)
+  await expect(sidebar.getByRole('button', { name: /Pacific Time.*UTC−7/i })).toBeVisible()
   await page.screenshot({ path: testInfo.outputPath('filtered-timezones.png'), fullPage: true })
+})
+
+test('expanded cities are searchable and can relabel an existing timezone card', async ({ page }, testInfo) => {
+  const search = page.getByRole('combobox', { name: /search cities/i })
+  const sidebar = page.getByRole('complementary', { name: 'Selected timezone details' })
+  await search.fill('Manchester')
+  await page.getByRole('option', { name: /Cities: Manchester/i }).click()
+  await expect(sidebar.locator('.zone-city')).toHaveText('Manchester')
+  await sidebar.getByRole('button', { name: 'Use Manchester in comparison' }).click()
+  if ((await page.viewportSize())!.width <= 800) await page.locator('svg.rsm-svg').click({ position: { x: 5, y: 5 } })
+  await expect(page.getByRole('article').filter({ hasText: 'Manchester' })).toBeVisible()
+  await expect(page.getByRole('article').filter({ hasText: 'London' })).toHaveCount(0)
+
+  await page.getByRole('button', { name: /United Kingdom\. Press Enter to select/ }).click()
+  const countryFilter = sidebar.getByRole('textbox', { name: 'Filter places and timezones' })
+  await expect(countryFilter).toBeVisible()
+  const credit = sidebar.getByText(/City data: GeoNames/)
+  const sidebarBox = (await sidebar.boundingBox())!
+  const creditBox = (await credit.boundingBox())!
+  if ((await page.viewportSize())!.width > 800) {
+    expect(sidebarBox.y + sidebarBox.height - (creditBox.y + creditBox.height)).toBeLessThan(30)
+  }
+  await expect(sidebar.getByRole('button', { name: /Edinburgh.*UTC\+1/i })).toBeVisible()
+  const cityBox = (await sidebar.getByRole('button', { name: /Edinburgh.*UTC\+1/i }).boundingBox())!
+  expect(cityBox.y + cityBox.height).toBeLessThan(creditBox.y)
+  await page.screenshot({ path: testInfo.outputPath('expanded-uk-cities.png'), fullPage: true })
+  await countryFilter.fill('Leeds')
+  await sidebar.getByRole('button', { name: /Leeds.*UTC\+1/i }).click()
+  await expect(sidebar.locator('.zone-city')).toHaveText('Leeds')
+  await sidebar.getByRole('button', { name: 'Use Leeds in comparison' }).click()
+  await page.reload()
+  if ((await page.viewportSize())!.width <= 800) await page.locator('svg.rsm-svg').click({ position: { x: 5, y: 5 } })
+  await expect(page.getByRole('article').filter({ hasText: 'Leeds' })).toBeVisible()
+
+  await search.fill('Marseille')
+  await expect(page.getByRole('option', { name: /Cities: Marseille/i })).toBeVisible()
+  await search.fill('Barcelona')
+  await expect(page.getByRole('option', { name: /Cities: Barcelona, Spain/i })).toBeVisible()
+  await search.fill('Belfast')
+  await search.press('Enter')
+  await expect(sidebar.locator('.zone-city')).toHaveText('Belfast')
+})
+
+test('GMT search selects the fixed Greenwich timezone in the UK', async ({ page }) => {
+  await page.getByRole('combobox', { name: /search cities/i }).fill('GMT')
+  await expect(page.getByRole('option', { name: /Timezone: Greenwich Mean Time/i })).toHaveCount(1)
+  await page.getByRole('option', { name: /Timezone: Greenwich Mean Time/i }).click()
+  const sidebar = page.getByRole('complementary', { name: 'Selected timezone details' })
+  await expect(sidebar.locator('.zone-country')).toHaveText('United Kingdom')
+  await expect(sidebar.locator('.zone-meta')).toContainText('UTC now · GMT')
+})
+
+test('named timezones and UTC can be selected and added as timezone cards', async ({ page }) => {
+  const search = page.getByRole('combobox', { name: /search cities/i })
+  await search.fill('Eastern Time')
+  await page.getByRole('option', { name: /Timezone: Eastern Time/i }).click()
+  await page.getByRole('button', { name: 'Add to comparison' }).click()
+  const easternCard = page.getByRole('article').filter({ hasText: 'Eastern Time' })
+  await expect(easternCard).toBeVisible()
+  await expect(easternCard.getByLabel('Named timezone')).toBeVisible()
+  await expect(easternCard.locator('.card-country')).toHaveCount(0)
+
+  await search.fill('UTC')
+  await page.getByRole('option', { name: /Timezone: UTC/i }).first().click()
+  await page.getByRole('button', { name: 'Add to comparison' }).click()
+  const utcCard = page.getByRole('article').filter({ hasText: 'UTC' }).last()
+  await expect(utcCard).toBeVisible()
+  await expect(utcCard.locator('.card-abbreviation')).toHaveText('UTC')
 })
 
 test('desktop workspace keeps cards beneath the map and the sidebar at full workspace height', async ({ page }) => {
@@ -164,6 +266,20 @@ test('desktop workspace keeps cards beneath the map and the sidebar at full work
   expect(sidebar!.height).toBeGreaterThanOrEqual(map!.height)
   await expect(page.getByRole('button', { name: 'Add City' })).toHaveCount(0)
   expect(await page.locator('.card-row').evaluate((element) => getComputedStyle(element).gridTemplateColumns.split(' ').length)).toBe(5)
+})
+
+test('short desktop windows shrink the map and scroll the sidebar within the viewport', async ({ page }) => {
+  test.skip((await page.viewportSize())!.width <= 800, 'Desktop layout assertion')
+  await page.setViewportSize({ width: 1440, height: 700 })
+  const shell = await page.locator('.app-shell').boundingBox()
+  const map = await page.locator('.map-panel').boundingBox()
+  const sidebar = page.getByRole('complementary', { name: 'Selected timezone details' })
+  expect(shell!.y + shell!.height).toBeLessThanOrEqual(700)
+  expect(map!.height).toBeGreaterThanOrEqual(300)
+  expect(map!.height).toBeLessThan(500)
+  expect(await sidebar.evaluate((element) => element.scrollHeight > element.clientHeight)).toBe(true)
+  await page.evaluate(() => window.scrollTo(0, 100))
+  expect(await page.evaluate(() => window.scrollY)).toBe(0)
 })
 
 test('mobile map prioritizes selected country details and wraps cards after deselection', async ({ page }) => {
@@ -187,11 +303,11 @@ test('mobile map prioritizes selected country details and wraps cards after dese
   await expect(strip).toBeVisible()
   await expect(page.locator('.selected-country')).toHaveCount(0)
 
-  await page.getByRole('combobox', { name: /search cities/i }).fill('Asia/Tokyo')
+  await page.getByRole('combobox', { name: /search cities/i }).fill('Tokyo')
   await page.getByRole('option', { name: /Tokyo/i }).first().click()
   await page.getByRole('button', { name: 'Add to comparison' }).click()
   await page.locator('svg.rsm-svg').click({ position: { x: 5, y: 5 } })
-  await page.getByRole('combobox', { name: /search cities/i }).fill('Asia/Kolkata')
+  await page.getByRole('combobox', { name: /search cities/i }).fill('Delhi')
   await page.getByRole('option', { name: /Delhi/i }).first().click()
   await page.getByRole('button', { name: 'Add to comparison' }).click()
   await page.locator('svg.rsm-svg').click({ position: { x: 5, y: 5 } })
@@ -215,7 +331,7 @@ test('renders the responsive comparison experience', async ({ page }, testInfo) 
   await expect(page.getByRole('img', { name: /world map/i })).toBeVisible()
   await expect(page.getByRole('heading', { name: 'Compare' })).toHaveCount(0)
   await expect(page.getByRole('button', { name: 'Timezones', exact: true })).toHaveCount(0)
-  await page.getByRole('combobox', { name: /search cities/i }).fill('America/New_York')
+  await page.getByRole('combobox', { name: /search cities/i }).fill('New York')
   await page.getByRole('option', { name: /New York/i }).first().click()
   await page.getByRole('button', { name: 'Add to comparison' }).click()
   await page.getByRole('button', { name: 'Compare' }).click()
@@ -297,7 +413,7 @@ test('renders the responsive comparison experience', async ({ page }, testInfo) 
 })
 
 test('displaces local hour boxes for half-hour timezone differences', async ({ page }, testInfo) => {
-  await page.getByRole('combobox', { name: /search cities/i }).fill('Asia/Kolkata')
+  await page.getByRole('combobox', { name: /search cities/i }).fill('Delhi')
   await page.getByRole('option', { name: /Delhi/i }).first().click()
   await page.getByRole('button', { name: 'Add to comparison' }).click()
   await page.getByRole('button', { name: 'Compare' }).click()

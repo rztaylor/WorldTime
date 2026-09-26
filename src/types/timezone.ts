@@ -12,6 +12,7 @@ export interface LocationRecord {
   latitude: number
   longitude: number
   aliases?: string[]
+  kind?: 'city' | 'timezone'
 }
 
 export interface CountryRecord {

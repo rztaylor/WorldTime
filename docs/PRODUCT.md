@@ -918,9 +918,24 @@ Honolulu
 ```
 
 Keep the desktop map/sidebar row at a stable height and scroll the sidebar internally.
-Show a short list of common timezones first, with a filter that searches IANA names,
-current and seasonal abbreviations (`PST`, `EDT`), and long names (`Eastern`). Each
-result shows the IANA name, abbreviations, current long name, and UTC offset.
+Show a compact mixed list of common cities and friendly timezone names. Use a location
+icon for cities and a clock icon for named timezones, with the current UTC offset aligned
+on the right. Do not repeat a named timezone when a displayed city already represents it.
+A filter searches every bundled city in the selected country, including single-zone
+countries when their city list exceeds the compact default. It also searches IANA names, current and seasonal
+abbreviations (`PST`, `EDT`), and friendly names (`Eastern Time`). The exhaustive IANA
+list remains behind search instead of filling the default sidebar.
+
+When a different city uses a timezone already present in the comparison, explicitly
+choosing it replaces that card's place label while preserving its Home status and order.
+
+Only the abbreviation currently in effect is displayed, but both standard and daylight
+abbreviations remain searchable throughout the year. Abbreviations are display and search
+metadata, never canonical identities. UTC is a first-class named timezone that can be
+inspected and explicitly added to the comparison.
+GMT resolves to a fixed `Etc/GMT` timezone with a Greenwich, UK association;
+it must not be presented as a Côte d'Ivoire location or confused with
+`Europe/London`, which observes BST in summer.
 
 For smaller countries with one timezone, add immediately.
 
@@ -1010,6 +1025,11 @@ Approximately:
 ```
 
 is enough.
+
+Bundle a curated selection of national capitals, prominent regional capitals, and
+major population centres. Keep the country sidebar to eight city rows by default;
+global and country search can reach the rest. City-to-zone mappings ship with the
+static app and use IANA identifiers. Attribute third-party geographic data in the UI.
 
 Do not initially ship a dataset containing every populated place in the world.
 
