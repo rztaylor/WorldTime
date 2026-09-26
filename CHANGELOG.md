@@ -11,13 +11,13 @@ All notable changes follow Keep a Changelog categories.
 - A favicon-first World Time app icon.
 - Initial World Time application with an interactive SVG map, live IANA timezone clocks, local preference persistence, reorderable comparison cards, search, Home timezone controls, and overlap-hours visualization.
 - Responsive monochrome interface based on the approved editorial design reference.
-- Production hosting through ChatGPT Sites at `tz.rztaylor.chatgpt.site`.
 - Full country and IANA timezone search coverage, including UTC-band selection.
 - Searchable multi-timezone country lists using IANA names, seasonal abbreviations, and long timezone names.
 - Static capital-city fallbacks so every country has a city available for inspection.
 
 ### Changed
 
+- Replaced ChatGPT Sites publishing with Cloudflare Pages Direct Upload from the `release` branch.
 - Sized the desktop workspace to the window, allowing the map to shrink while timezone details and comparison cards scroll within their sections.
 - Country panels keep a short default city list while searching the wider catalog; selecting a different city in an existing timezone changes the comparison card's place label.
 - Combined country cities and timezone regions into one compact, icon-labelled sidebar list, with seasonal abbreviations retained as search aliases.
