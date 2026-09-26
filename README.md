@@ -2,7 +2,7 @@
 
 A fast, account-free timezone comparison tool built around an interactive world map. Inspect a location, explicitly add it to your comparison, compare live local clocks, reorder cards, choose a Home timezone, and find shared working hours. Preferences stay in your browser.
 
-Production URL: [tz.rztaylor.uk](https://tz.rztaylor.uk) (first Cloudflare deployment pending)
+Production URL: [tz.rztaylor.uk](https://tz.rztaylor.uk)
 
 ## Run locally
 
