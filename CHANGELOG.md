@@ -22,7 +22,7 @@ All notable changes follow Keep a Changelog categories.
 - Country panels keep a short default city list while searching the wider catalog; selecting a different city in an existing timezone changes the comparison card's place label.
 - Combined country cities and timezone regions into one compact, icon-labelled sidebar list, with seasonal abbreviations retained as search aliases.
 - Expanded comparisons to ten timezones in a two-row, five-column desktop grid and removed the redundant Add City placeholder card.
-- Moved time comparison into a dedicated **Compare** view with per-location, labeled hourly cells and persistent work/night ranges rendered in subtle theme-aware yellow, blue, and purple.
+- Moved time comparison into a dedicated **Compare** view with per-location, labeled hourly cells and persistent work/night ranges.
 - Restyled application scrollbars with slim, rounded, theme-aware tracks and thumbs.
 - Distinguished current civil offsets from geographic longitude guides, including clearer DST and standard-offset details.
 - Separated map/search/sidebar selection from the explicit **Add to comparison** action.
