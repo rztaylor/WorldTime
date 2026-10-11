@@ -8,3 +8,4 @@ World Time is a static, client-side timezone comparison tool. Treat `docs/PRODUC
 - Keep geographic records, time calculations, storage, and UI components in separate owners.
 - Run `npm run check` for ordinary validation and `npm run test:browser` for rendered interaction checks.
 - Work on feature branches and use focused commits and pull requests. Never modify the default branch directly.
+- Track work on the Flashheart board (project `tz`, key `TZ`) with the `flashheart` tools; see `.agents/facts/work-tracking.md`.
