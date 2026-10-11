@@ -8,4 +8,5 @@
 - Workflow: `.github/workflows/publish-pages.yml`.
 - Build: `npm ci`, `npm run check`, and `npm run test:browser`; upload `dist/` with Wrangler.
 - GitHub Actions environment: `Live`; secret: `CLOUDFLARE_API_TOKEN`. Never store or print the token in repository files or logs.
-- DNS: proxied CNAME `tz.rztaylor.uk` → `world-time-2gj.pages.dev` is configured. Pages domain validation and first deployment are pending.
+- DNS: proxied CNAME `tz.rztaylor.uk` → `world-time-2gj.pages.dev` is configured and Pages domain validation is active.
+- First production deployment succeeded from `release` on 2026-09-26; verify the latest deployment and commit through Cloudflare Pages and GitHub Actions when publishing again.
