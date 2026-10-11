@@ -1,8 +1,9 @@
 # Architecture facts
 
 - `src/app/` composes the single-page workflow and owns shared application state.
-- `src/components/` owns visible feature UI grouped by header, map, timezone, overlap, and shared primitives.
-- `src/data/` owns curated countries, cities, and timezone metadata; components must not embed geographic records.
+- `src/components/` owns visible feature UI grouped by header, map, timezone, and overlap (the Compare schedule).
+- `src/data/` owns curated and generated cities and adapts package country/timezone records; components must not embed geographic records.
+- `scripts/` owns development-time data generation; `src/test/` owns Vitest setup and `tests/` the Playwright suite.
 - `src/hooks/` owns reusable browser lifecycle behavior such as the central clock.
 - `src/lib/` owns pure search, storage, overlap, and timezone helpers.
 - `src/types/` owns cross-unit domain contracts. `src/styles/` owns global tokens and responsive composition.

@@ -1,4 +1,4 @@
-# Timezone Map Website
+# World Time
 
 ## 1. Product Summary
 
@@ -121,9 +121,9 @@ Muted text:        #737373
 Borders:           #E5E5E5
 Strong borders:    #171717
 
-Map inactive:      #D6D6D4
-Map secondary:     #9E9E9B
-Map selected:      #171717
+Map inactive:      #B6B6B2
+Map same-offset:   #696966
+Map selected:      #E53935   (red accent)
 ```
 
 Avoid gradients except where subtle opacity variation is needed for timezone bands.
@@ -205,41 +205,33 @@ The main application should approximately follow:
 │               │                                              │
 │ LEFT PANEL    │                WORLD MAP                     │
 │               │                                              │
-│  UTC +1       │                                              │
-│               │                                              │
-│ countries     │                                              │
-│ cities        │                                              │
-│               │                                              │
-├───────────────┴──────────────────────────────────────────────┤
-│ SELECTED TIMEZONES                                           │
-│ [HOME] [London] [Berlin] [Tokyo] [Sydney] [+ Add]           │
-├──────────────────────────────────────────────────────────────┤
-│ OVERLAP HOURS                                                │
-├──────────────────────────────────────────────────────────────┤
-│ FOOTER                                                       │
-└──────────────────────────────────────────────────────────────┘
+│ city/country  │                                              │
+│ or UTC +1     │                                              │
+│               ├──────────────────────────────────────────────┤
+│ places &      │ SELECTED TIMEZONES (5 columns, up to 2 rows) │
+│ timezones     │ [HOME] [London] [Berlin] [Tokyo] [Sydney]    │
+└───────────────┴──────────────────────────────────────────────┘
 ```
 
-Recommended page width:
+The **Compare** view replaces the map workspace with the per-location schedule
+(section 26). There is no footer.
+
+Page width:
 
 ```text
-max-width: 1600px
+max-width: 1500px
 ```
 
-but allow the map to use almost the entire viewport on large monitors.
+The shell fills the viewport height; the map shrinks while the sidebar and card grid
+scroll within their sections.
 
 Main grid:
 
 ```css
-grid-template-columns: 290px minmax(0, 1fr);
+grid-template-columns: 270px minmax(0, 1fr);
 ```
 
-For very wide screens:
-
-```text
-Left panel: 300-330px
-Map: everything else
-```
+At 1180px and below the left panel narrows to 240px.
 
 ---
 
@@ -257,16 +249,15 @@ Contents, left to right:
 WORLD TIME logo
 
 Map
-Timezones
 Compare
-Tools
-About
 
 Search field
 
+12H / 24H switch
+
 Theme switch
 
-Set Home Timezone
+Set Home Timezone   (Map view only)
 ```
 
 The header should feel compact rather than app-like.
@@ -281,15 +272,12 @@ Example structure:
 
   <div className="ml-auto flex items-center gap-3">
     <GlobalSearch />
-    <ThemeToggle />
+    <TimeFormatButton />
+    <ThemeButton />
     <SetHomeButton />
   </div>
 </header>
 ```
-
-The first version only needs the Map page.
-
-Other links may be placeholders or hidden until functionality exists.
 
 ---
 
@@ -333,22 +321,14 @@ Ctrl/Cmd + K
 
 Pressing the shortcut focuses the search.
 
-Search results should be grouped:
+Results form one ranked list of at most 12 entries. Each result is labelled with its
+kind (city, country or timezone) and an icon:
 
 ```text
-Cities
-
-London
-London, Canada
-London, Kentucky
-
-Countries
-
-United Kingdom
-
-Timezones
-
-Europe/London
+📍 City      London            United Kingdom
+📍 City      London            Canada
+📍 Country   United Kingdom
+🕒 Timezone  Eastern Time      UTC−4
 ```
 
 Selecting a result should:
@@ -363,56 +343,46 @@ Selecting a result should:
 
 The left panel changes depending on the current map selection.
 
-Example:
+Location details:
 
 ```text
-← All Timezones
+← All Timezones            (or ← Back to UTC+1 after an offset drilldown)
 
 Berlin
 Germany
 
 Europe / Berlin
 UTC+1 now · CET
+☀ Daylight saving is currently in effect.
 
-☀ Some locations currently observe
-  daylight saving time
+[+ Add to comparison]
 
-COVERED COUNTRIES (29)
+PLACES & TIMEZONES
+[filter: PST, Eastern, Los Angeles…]   (shown for larger catalogs)
 
-Austria
-Belgium
-Croatia
-Czechia
-Denmark
-France
-Germany >
-Italy
-Netherlands
-Norway
+📍 Berlin  Capital   UTC+1
+📍 Hamburg           UTC+1
+📍 Munich            UTC+1
+...                  (eight rows by default)
+```
+
+UTC-band details:
+
+```text
+← All Timezones
+
+UTC+1
+Countries at UTC+1
+29 countries currently share this offset.
+
+COUNTRIES
+Austria  >
+Belgium  >
 ...
-
-Show all
-
-MAJOR CITIES
-
-Berlin       UTC+1
-Paris        UTC+1
-Rome         UTC+1
-Madrid       UTC+1
-Vienna       UTC+1
-
-Show more cities
 ```
 
-Use extremely strong typography for the offset.
-
-Example:
-
-```tsx
-<div className="text-7xl font-black tracking-tighter">
-  UTC+1
-</div>
-```
+Use strong typography for the city/country heading. The offset is set very large only
+in UTC-band lists.
 
 Clicking a country or city in this panel should update the map selection.
 
@@ -493,11 +463,12 @@ Selected country may display a floating label:
 
 ```text
 ● Germany
-  Berlin · 14:30
+  Berlin
+  14:30
 ```
 
-The country is the prominent first line and the city with its live local time is a smaller,
-lower-contrast second line.
+The country is the prominent first line; the city and its live local time follow on
+smaller, lower-contrast lines.
 Avoid oversized popup balloons.
 Do not draw a focus rectangle or selection border around a country; the red fill is the
 complete visual selection treatment. Do not add a separate map marker; the country fill and
@@ -507,12 +478,10 @@ label provide sufficient location context. Labels must not intercept country cli
 
 # 11. Map Controls
 
-Place controls vertically in the upper-right or right-centre.
+Place a compact horizontal control group in the upper-right.
 
 ```text
-+
--
-◎
+[ + | − | ◎ ]
 ```
 
 Functions:
@@ -543,30 +512,26 @@ Example:
 
 ```text
 ┌────────────────────┐
-│ ⌂ New York      ×  │
-│                    │
-│ 10:24 AM           │
-│ America/New_York   │
-│ UTC-4              │
+│ ⠿ ⌂ New York    ×  │
+│ 10:24 AM  ☀        │
+│ United States · EDT│
+│            UTC−4   │
 └────────────────────┘
 ```
 
+The zone row shows the country and seasonal abbreviation (named timezones show only the
+abbreviation), a Yesterday/Tomorrow badge when the local date differs from Home, and the
+UTC offset; the IANA identifier is not shown on cards. A work, sun-on-the-horizon or night
+icon beside the time follows the configured Compare ranges.
+
 Cards should remain short and compact. Desktop displays up to five equal-width cards per row,
-with a maximum of ten selected timezones forming two rows. Mobile retains horizontally
-scrollable compact cards.
+with a maximum of ten selected timezones forming two rows. Mobile cards wrap onto responsive
+rows and are hidden while a map country is selected so its details stay prominent.
 The AM/PM suffix is smaller and lower contrast than the clock digits. The UTC offset shares
 the timezone-name row and is aligned to its right edge. Cards occupy the space beneath the map,
 while the sidebar continues alongside the cards.
 
-The mobile row should scroll horizontally when necessary.
-
-Use:
-
-```css
-overflow-x-auto
-```
-
-but retain drag-and-drop behaviour.
+Mobile cards retain drag-and-drop behaviour.
 
 The interface does not need explanatory “drag to reorder” or persistence copy above the cards;
 the drag handles communicate reordering and browser persistence is implicit.
@@ -601,7 +566,7 @@ Example:
 
 10:24 AM
 
-America/New_York  UTC-4
+United States · EDT  UTC−4
 ```
 
 Clicking:
@@ -624,7 +589,8 @@ Each card should support:
 
 ```text
 drag to reorder
-remove
+move left / right   (keyboard-accessible buttons)
+remove              (disabled on the last card)
 set as Home
 ```
 
@@ -676,21 +642,24 @@ because abbreviations can be ambiguous.
 Suggested TypeScript model:
 
 ```ts
-export interface SelectedTimezone {
+export interface LocationRecord {
   id: string;
-  timezone: string;
-
   city: string;
   country: string;
+  countryCode: string;
+  timezone: string;
+  latitude: number;
+  longitude: number;
+  aliases?: string[];
+  kind?: "city" | "timezone";
+}
 
-  latitude?: number;
-  longitude?: number;
-
+export interface SelectedTimezone extends LocationRecord {
   isHome: boolean;
-
-  sortOrder: number;
 }
 ```
+
+Array order is display order.
 
 Example:
 
@@ -700,10 +669,10 @@ Example:
   timezone: "Europe/London",
   city: "London",
   country: "United Kingdom",
+  countryCode: "GB",
   latitude: 51.5072,
   longitude: -0.1276,
-  isHome: true,
-  sortOrder: 0
+  isHome: true
 }
 ```
 
@@ -783,31 +752,36 @@ their order
 Home timezone
 12/24-hour preference
 theme
-optional working hours
+working hours
+night hours
+the inspected (active) timezone
 ```
 
-Suggested key:
+Key:
 
 ```text
 timezone-map.preferences.v1
 ```
 
-Suggested schema:
+Schema:
 
 ```ts
+interface WorkingHours {
+  start: number;
+  end: number;
+}
+
 interface StoredPreferences {
   version: 1;
 
   selectedTimezones: SelectedTimezone[];
+  activeTimezone: string;
 
   timeFormat: "12h" | "24h";
-
   theme: "light" | "dark" | "system";
 
-  workingHours?: {
-    start: number;
-    end: number;
-  };
+  workingHours: WorkingHours;   // default 9–17
+  nightHours: WorkingHours;     // default 22–6
 }
 ```
 
@@ -937,7 +911,8 @@ GMT resolves to a fixed `Etc/GMT` timezone with a Greenwich, UK association;
 it must not be presented as a Côte d'Ivoire location or confused with
 `Europe/London`, which observes BST in summer.
 
-For smaller countries with one timezone, add immediately.
+Countries with one timezone open their details directly; adding still requires
+**Add to comparison**.
 
 ---
 
@@ -994,27 +969,15 @@ A future release can add true coordinate-to-IANA timezone lookup.
 
 Create data files independently of components.
 
-Suggested:
-
 ```text
 src/data/
-  countries.ts
-  cities.ts
-  timezones.ts
+  catalog.ts              package-backed countries and IANA timezones
+  cities.ts               curated city records and GeoNames adapter
+  generated-cities.json   generated by scripts/build-city-catalog.mjs
+  locations.ts            combined location and country records
 ```
 
-Example:
-
-```ts
-export interface CityRecord {
-  name: string;
-  countryCode: string;
-  timezone: string;
-  latitude: number;
-  longitude: number;
-  population?: number;
-}
-```
+Cities use the `LocationRecord` model (section 16).
 
 Only include major cities initially.
 
@@ -1044,7 +1007,7 @@ interface CountryRecord {
   code: string;
   name: string;
   timezones: string[];
-  majorCities: string[];
+  majorCityIds: string[];
 }
 ```
 
@@ -1055,12 +1018,7 @@ Example:
   code: "GB",
   name: "United Kingdom",
   timezones: ["Europe/London"],
-  majorCities: [
-    "London",
-    "Manchester",
-    "Birmingham",
-    "Edinburgh"
-  ]
+  majorCityIds: ["london", "manchester", "birmingham", "edinburgh"]
 }
 ```
 
@@ -1174,9 +1132,8 @@ border
 Full layout:
 
 ```text
-sidebar + map
-timezone card row
-overlap panel
+Map view:      sidebar | map above a five-column card grid
+Compare view:  per-location 24-hour schedule
 ```
 
 ## Tablet
@@ -1189,7 +1146,7 @@ Left information panel may shrink to:
 
 Map remains visible.
 
-Timezone cards horizontally scroll.
+Timezone cards keep the five-column grid.
 
 ## Mobile
 
@@ -1200,29 +1157,12 @@ Recommended:
 ```text
 Map
 Selected timezone details
-Timezone cards
-Overlap
+Timezone cards (wrapping rows)
 ```
 
-The country detail panel stacks below the map.
-
-Example:
-
-```text
-tap map
-
-↓ bottom sheet
-
-UTC+1
-Central European Time
-
-Germany
-France
-Italy
-...
-```
-
-Timezone card row remains horizontally scrollable.
+The details panel stacks below the map. Cards are hidden while a map country is selected
+so its details stay prominent. Compare remains a separate view; its work and night range
+controls are collapsed by default on mobile.
 
 ---
 
@@ -1246,80 +1186,56 @@ Use touch event handling carefully.
 
 # 31. Component Structure
 
-Suggested React structure:
-
 ```text
-App
-
-├── Header
-│   ├── Logo
-│   ├── Navigation
-│   ├── GlobalSearch
-│   ├── ThemeToggle
-│   └── SetHomeButton
-│
-├── MainMapLayout
-│   ├── TimezoneSidebar
-│   │   ├── TimezoneHeader
-│   │   ├── CountryList
-│   │   └── CityList
-│   │
-│   └── WorldMap
-│       ├── TimezoneBands
-│       ├── CountryLayer
-│       ├── CityMarker
-│       └── MapControls
-│
-├── TimezoneStrip
-│   ├── SortableTimezoneCard
-│   └── AddTimezoneCard
-│
-├── OverlapHours
-│
-└── Footer
+TimezoneProvider
+└── App
+    ├── Header                 brand, Map/Compare navigation, 12/24h, theme, Set Home
+    │   └── GlobalSearch
+    │
+    ├── Map view
+    │   ├── TimezoneSidebar    location details, places & timezones, UTC-band lists
+    │   ├── WorldMap           countries, UTC bands, selection label, zoom controls
+    │   └── TimezoneStrip
+    │       └── SortableTimezoneCard
+    │
+    └── Compare view
+        └── OverlapHours       per-location schedule with work/night range controls
 ```
 
 ---
 
-# 32. Suggested Source Tree
+# 32. Source Tree
 
 ```text
 src/
 ├── app/
 │   ├── App.tsx
-│   └── routes.ts
+│   └── TimezoneProvider.tsx
 │
 ├── components/
 │   ├── header/
 │   │   ├── Header.tsx
-│   │   ├── GlobalSearch.tsx
-│   │   └── ThemeToggle.tsx
+│   │   └── GlobalSearch.tsx
 │   │
 │   ├── map/
-│   │   ├── WorldMap.tsx
-│   │   ├── TimezoneBands.tsx
-│   │   ├── CountryLayer.tsx
-│   │   ├── CityMarker.tsx
-│   │   └── MapControls.tsx
+│   │   └── WorldMap.tsx
 │   │
 │   ├── timezone/
 │   │   ├── TimezoneSidebar.tsx
 │   │   ├── TimezoneCard.tsx
-│   │   ├── TimezoneStrip.tsx
-│   │   └── AddTimezoneCard.tsx
+│   │   └── TimezoneStrip.tsx
 │   │
 │   └── overlap/
 │       └── OverlapHours.tsx
 │
 ├── data/
-│   ├── countries.ts
+│   ├── catalog.ts
 │   ├── cities.ts
-│   └── timezones.ts
+│   ├── generated-cities.json
+│   └── locations.ts
 │
 ├── hooks/
-│   ├── useClock.ts
-│   ├── useLocalStorage.ts
-│   └── useTimezoneStore.ts
+│   └── useClock.ts
 │
 ├── lib/
 │   ├── timezone.ts
@@ -1328,8 +1244,7 @@ src/
 │   └── overlap.ts
 │
 ├── types/
-│   ├── timezone.ts
-│   └── geography.ts
+│   └── timezone.ts
 │
 ├── styles/
 │   └── globals.css
@@ -1345,91 +1260,45 @@ React context is sufficient initially.
 
 There is no need for Redux.
 
-Recommended:
-
-```text
-TimezoneProvider
-```
+`TimezoneProvider` (`src/app/TimezoneProvider.tsx`) owns shared state and persistence.
 
 State:
 
 ```ts
-interface AppState {
-  selectedTimezones: SelectedTimezone[];
-
-  activeTimezone?: string;
-
-  homeTimezone: string;
-
+interface TimezoneState {
+  selected: SelectedTimezone[];      // Home is the card with isHome
+  active: LocationRecord;            // inspected location
+  inspectedOffset: number | null;    // UTC-band list being shown
+  returnOffset: number | null;       // offset list a drilldown came from
+  mapCountrySelected: boolean;
   timeFormat: "12h" | "24h";
-
-  displayTimestamp: number;
-
   theme: "light" | "dark" | "system";
+  workingHours: WorkingHours;
+  nightHours: WorkingHours;
 }
 ```
 
 Actions:
 
 ```text
-addTimezone
-removeTimezone
-reorderTimezones
-setHomeTimezone
-selectTimezone
-setTimeFormat
-setDisplayTimestamp
+addLocation, removeLocation, setHome, reorder, move
+selectLocation, selectLocationFromOffset, selectOffset, returnToOffset, clearMapSelection
+toggleTimeFormat, cycleTheme, setWorkingHours, setNightHours
 ```
+
+The live clock comes from `useClock`. The Future Time Slider (section 27) will add a
+separate `displayTimestamp`.
 
 If state becomes significantly more complex later, Zustand would be a suitable upgrade.
 
 ---
 
-# 34. Tailwind Layout Guidance
+# 34. Layout Styling
 
-Main container:
-
-```tsx
-<div className="mx-auto max-w-[1600px] px-6">
-```
-
-Main grid:
-
-```tsx
-<div className="
-  grid
-  grid-cols-[300px_minmax(0,1fr)]
-  border-x
-  border-neutral-200
-">
-```
-
-Cards:
-
-```tsx
-<div className="
-  min-w-[180px]
-  rounded-md
-  border
-  border-neutral-200
-  bg-white
-  p-4
-">
-```
-
-Home card:
-
-```tsx
-<div className="
-  min-w-[180px]
-  rounded-md
-  border
-  border-neutral-950
-  bg-neutral-950
-  p-4
-  text-white
-">
-```
+Page composition, tokens and responsive rules live in `src/styles/globals.css`; Tailwind
+utilities handle local composition. The shell is capped at 1500px, the main grid is
+`270px minmax(0, 1fr)`, and cards are equal-width grid cells. Home cards invert to a dark
+background with light text.
 
 Keep border-radius modest.
 
@@ -1476,7 +1345,7 @@ Move left
 Move right
 ```
 
-inside the card menu.
+in each card's hover/focus action row.
 
 Do not rely solely on map interaction.
 
@@ -1656,7 +1525,7 @@ Implement:
 ```text
 working hours grid
 cross-timezone comparison
-maximum-overlap detection
+colour-coded work/night rows (no maximum-overlap window)
 ```
 
 ---
@@ -1668,7 +1537,7 @@ Improve mobile design.
 Add:
 
 ```text
-bottom-sheet timezone details
+details stacked below the map
 mobile map interactions
 touch-friendly controls
 ```
@@ -1798,7 +1667,7 @@ Use this as the first implementation instruction:
 >
 > Start with the desktop visual design and component architecture before adding functionality.
 >
-> Use a monochrome Swiss-inspired design with a large SVG world map, a 300px timezone information sidebar, and a horizontal timezone comparison card strip underneath.
+> Use a monochrome Swiss-inspired design with a large SVG world map, a 270px timezone information sidebar, and a five-column timezone card grid beneath the map.
 >
 > Use React functional components and TypeScript throughout.
 >
