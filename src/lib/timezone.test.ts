@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { describeZone, zoneAbbreviation, zoneDisplayNames } from './timezone'
+import { countryNamesSharingOffset, describeZone, zoneAbbreviation, zoneDisplayNames } from './timezone'
 
 const london = {
   id: 'london',
@@ -48,5 +48,34 @@ describe('zoneAbbreviation', () => {
 
   it('uses a recognizable locale abbreviation for named timezones when available', () => {
     expect(zoneAbbreviation(Date.UTC(2026, 6, 15), { timezone: 'Europe/Warsaw', kind: 'timezone' })).toBe('CEST')
+  })
+})
+
+describe('countryNamesSharingOffset', () => {
+  it('matches countries on different IANA zones with the same current offset', () => {
+    const names = countryNamesSharingOffset('Africa/Lagos', Date.UTC(2026, 0, 15))
+
+    expect(names).toContain('Nigeria')
+    expect(names).toContain('Chad')
+    expect(names).toContain('Algeria')
+    expect(names).not.toContain('United Kingdom')
+  })
+
+  it('follows daylight saving for the selected timezone', () => {
+    const winter = countryNamesSharingOffset('Europe/London', Date.UTC(2026, 0, 15))
+    const summer = countryNamesSharingOffset('Europe/London', Date.UTC(2026, 6, 15))
+
+    expect(winter).toContain('Ghana')
+    expect(winter).not.toContain('Nigeria')
+    expect(summer).toContain('Nigeria')
+    expect(summer).not.toContain('Ghana')
+  })
+
+  it('matches half-hour offsets', () => {
+    const names = countryNamesSharingOffset('Asia/Kolkata', Date.UTC(2026, 0, 15))
+
+    expect(names).toContain('India')
+    expect(names).toContain('Sri Lanka')
+    expect(names).not.toContain('Pakistan')
   })
 })

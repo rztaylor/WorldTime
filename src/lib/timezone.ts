@@ -140,14 +140,22 @@ export const zoneDisplayNames = (timezone: string, timestamp: number) => {
   }
 }
 
-export function countryNamesForOffset(offset: number, timestamp: number) {
+/** Map country names with any timezone currently at the given UTC offset, in minutes. */
+export function countryNamesForOffsetMinutes(offsetMinutes: number, timestamp: number) {
   const names = new Set<string>()
   for (const location of catalogTimezones) {
-    if (zonedDateTime(timestamp, location.timezone).offset !== offset * 60) continue
+    if (zonedDateTime(timestamp, location.timezone).offset !== offsetMinutes) continue
     for (const country of countryNamesForTimezone(location.timezone)) names.add(country)
   }
   return names
 }
+
+export const countryNamesForOffset = (offset: number, timestamp: number) =>
+  countryNamesForOffsetMinutes(offset * 60, timestamp)
+
+/** Map country names currently sharing the given timezone's UTC offset. */
+export const countryNamesSharingOffset = (timezone: string, timestamp: number) =>
+  countryNamesForOffsetMinutes(zonedDateTime(timestamp, timezone).offset, timestamp)
 
 export function locationsForOffset(offset: number, timestamp: number) {
   return catalogCountries

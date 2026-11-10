@@ -5,11 +5,8 @@ import { geoCentroid, geoEqualEarth } from 'd3-geo'
 import type { GeoProjection } from 'd3-geo'
 import world from 'world-atlas/countries-110m.json'
 import { useTimezones } from '../../app/TimezoneProvider'
-import {
-  countryNamesForTimezone,
-  locationForCountryName,
-} from '../../data/catalog'
-import { countryNamesForOffset, formatClock } from '../../lib/timezone'
+import { locationForCountryName } from '../../data/catalog'
+import { countryNamesForOffset, countryNamesSharingOffset, formatClock } from '../../lib/timezone'
 
 interface MapPosition {
   coordinates: [number, number]
@@ -83,7 +80,7 @@ export function WorldMap({ now }: { now: number }) {
   const markerWidth = Math.max(96, active.country.length * 6.4 + 30, active.city.length * 5.3 + 30, activeTime.length * 5.3 + 30)
   const relatedCountries = useMemo(
     () => inspectedOffset === null
-      ? countryNamesForTimezone(active.timezone)
+      ? countryNamesSharingOffset(active.timezone, now)
       : countryNamesForOffset(inspectedOffset, now),
     [active.timezone, inspectedOffset, now],
   )
