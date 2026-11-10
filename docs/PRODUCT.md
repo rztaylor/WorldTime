@@ -446,6 +446,11 @@ fill: neutral-300
 fill: neutral-500
 ```
 
+A country is in the same timezone when the time the map displays for it (the one timezone
+selecting that country shows, such as Sydney for Australia) currently has the same UTC offset as
+the selected place or UTC band. Other regions of the country do not affect shading, so every
+shaded country shows the same clock time.
+
 ## Selected country
 
 ```text

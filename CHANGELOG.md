@@ -23,7 +23,7 @@ All notable changes follow Keep a Changelog categories.
 - Combined country cities and timezone regions into one compact, icon-labelled sidebar list, with seasonal abbreviations retained as search aliases.
 - Expanded comparisons to ten timezones in a two-row, five-column desktop grid and removed the redundant Add City placeholder card.
 - Moved time comparison into a dedicated **Compare** view with per-location, labeled hourly cells and persistent work/night ranges.
-- Selecting a place shades every country currently sharing its UTC offset as **Same timezone**, not only countries on the identical IANA zone.
+- Map **Same timezone** shading now compares the time each country displays: a country is shaded when the one timezone the map shows for it (Sydney for Australia) is on the selected place's or UTC band's current offset, regardless of its other regions.
 - The map now fills its whole panel at any window size, with the UTC band header, zoom controls, region labels and legend laid over it; the selected-country label keeps a constant readable size while zooming.
 - Restyled application scrollbars with slim, rounded, theme-aware tracks and thumbs.
 - Distinguished current civil offsets from geographic longitude guides, including clearer DST and standard-offset details.

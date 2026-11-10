@@ -98,8 +98,12 @@ export function capitalLocationForCountry(countryCode: string, fallbackTimezone:
   }
 }
 
-export function countryNamesForTimezone(timezone: string) {
-  return new Set(getCountriesForTimezone(timezone).map((country) => catalogToAtlasName[country.name] ?? country.name))
+const displayTimezoneCache = new Map<string, string | null>()
+
+/** The one timezone the map shows for a drawn country: the zone selecting that country displays. */
+export function displayTimezoneForCountryName(name: string): string | null {
+  if (!displayTimezoneCache.has(name)) displayTimezoneCache.set(name, locationForCountryName(name, [0, 0])?.timezone ?? null)
+  return displayTimezoneCache.get(name) ?? null
 }
 
 export const catalogCountries = allCountries

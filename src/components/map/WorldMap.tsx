@@ -6,7 +6,7 @@ import type { GeoProjection } from 'd3-geo'
 import world from 'world-atlas/countries-110m.json'
 import { useTimezones } from '../../app/TimezoneProvider'
 import { locationForCountryName } from '../../data/catalog'
-import { countryNamesForOffset, countryNamesSharingOffset, formatClock } from '../../lib/timezone'
+import { countryNamesShowingOffset, formatClock, zonedDateTime } from '../../lib/timezone'
 
 interface MapPosition {
   coordinates: [number, number]
@@ -32,6 +32,8 @@ const BAND_WIDTH_PER_SCALE = 32 / 126
 const WORLD_WIDTH_FILL = 0.85
 const WORLD_HEIGHT_FILL = 0.9
 const MARKER_SCALE = 1.3
+const ATLAS_COUNTRY_NAMES = (world as unknown as { objects: { countries: { geometries: { properties?: { name?: string } }[] } } })
+  .objects.countries.geometries.map((geometry) => String(geometry.properties?.name ?? ''))
 const INITIAL_POSITION: MapPosition = { coordinates: [8, 10], zoom: 1.2 }
 const unitProjection = geoEqualEarth().scale(1).translate([0, 0])
 const UNIT_WORLD_WIDTH = 2 * (unitProjection([180, 0])?.[0] ?? 2.7)
@@ -78,11 +80,10 @@ export function WorldMap({ now }: { now: number }) {
   const mapTransform = liveTransform?.sizeKey === sizeKey ? liveTransform : transformForPosition(position, projection, width)
   const activeTime = formatClock(now, active.timezone, timeFormat)
   const markerWidth = Math.max(96, active.country.length * 6.4 + 30, active.city.length * 5.3 + 30, activeTime.length * 5.3 + 30)
+  const comparedOffset = inspectedOffset === null ? zonedDateTime(now, active.timezone).offset : inspectedOffset * 60
   const relatedCountries = useMemo(
-    () => inspectedOffset === null
-      ? countryNamesSharingOffset(active.timezone, now)
-      : countryNamesForOffset(inspectedOffset, now),
-    [active.timezone, inspectedOffset, now],
+    () => countryNamesShowingOffset(ATLAS_COUNTRY_NAMES, comparedOffset, now),
+    [comparedOffset, now],
   )
 
   const selectCountry = (name: string, coordinates: [number, number]) => {
