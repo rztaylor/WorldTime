@@ -1,6 +1,10 @@
 import { expect, test } from '@playwright/test'
 
+// A fixed northern-summer instant (London 11:00 BST) keeps offsets, abbreviations and DST notes stable whatever the run date.
+const FIXED_NOW = new Date('2026-07-15T10:00:00Z')
+
 test.beforeEach(async ({ page }) => {
+  await page.clock.setFixedTime(FIXED_NOW)
   await page.goto('/')
   await page.evaluate(() => localStorage.clear())
   await page.reload()
