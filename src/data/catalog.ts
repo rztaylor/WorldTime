@@ -59,11 +59,29 @@ function recordForCountry(country: Country, timezone: string, coordinates: [numb
   }
 }
 
+// Capitals whose countries-list spelling differs from their IANA zone's place name.
+const capitalZonePlaceNames: Record<string, string> = {
+  'Ulan Bator': 'Ulaanbaatar',
+}
+
+const placeKey = (value: string) => normalize(value).replace(/[^a-z0-9]/g, '')
+
+function capitalTimezone(country: Country): string | undefined {
+  const capital = countryDetails[country.id as keyof typeof countryDetails]?.capital
+  if (!capital) return undefined
+  const key = placeKey(capitalZonePlaceNames[capital] ?? capital)
+  return country.timezones.find((candidate) => placeKey(candidate.split('/').at(-1)?.replaceAll('_', ' ') ?? '') === key)
+}
+
+/** The zone a country is shown on before a city is chosen: its capital's zone when it has one, else its first listed zone. */
+const primaryTimezone = (country: Country) => capitalTimezone(country) ?? country.timezones[0]
+
 export function locationForCountryName(name: string, coordinates: [number, number]): LocationRecord | null {
   const curated = locations.find((location) => location.country === name)
   if (curated) return { ...curated, longitude: coordinates[0], latitude: coordinates[1] }
   const country = countryForName(name)
-  return country?.timezones[0] ? recordForCountry(country, country.timezones[0], coordinates) : null
+  const timezone = country && primaryTimezone(country)
+  return country && timezone ? recordForCountry(country, timezone, coordinates) : null
 }
 
 export function locationForTimezone(timezone: string): LocationRecord | null {
@@ -83,11 +101,7 @@ export function capitalLocationForCountry(countryCode: string, fallbackTimezone:
   const country = getCountry(countryCode)
   const capital = countryDetails[countryCode as keyof typeof countryDetails]?.capital
   if (!country || !capital) return null
-  const normalizedCapital = normalize(capital).replace(/[^a-z0-9]/g, '')
-  const timezone = country.timezones.find((candidate) => {
-    const place = candidate.split('/').at(-1)?.replaceAll('_', ' ') ?? ''
-    return normalize(place).replace(/[^a-z0-9]/g, '') === normalizedCapital
-  }) ?? fallbackTimezone
+  const timezone = capitalTimezone(country) ?? fallbackTimezone
   const base = recordForCountry(country, timezone)
   return {
     ...base,
@@ -108,7 +122,7 @@ export function displayTimezoneForCountryName(name: string): string | null {
 
 export const catalogCountries = allCountries
   .filter((country) => country.timezones.length > 0)
-  .map((country) => recordForCountry(country, country.timezones[0]))
+  .map((country) => recordForCountry(country, primaryTimezone(country)))
 
 export const catalogTimezones = allTimezones
   .filter((timezone) => !timezone.aliasOf)
