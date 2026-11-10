@@ -1,14 +1,12 @@
-import { useMemo, useState } from 'react'
+import { useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { ComposableMap, Geographies, Geography, Marker, ZoomableGroup } from 'react-simple-maps'
 import { LocateFixed, Minus, Plus } from 'lucide-react'
 import { geoCentroid, geoEqualEarth } from 'd3-geo'
+import type { GeoProjection } from 'd3-geo'
 import world from 'world-atlas/countries-110m.json'
 import { useTimezones } from '../../app/TimezoneProvider'
-import {
-  countryNamesForTimezone,
-  locationForCountryName,
-} from '../../data/catalog'
-import { countryNamesForOffset, formatClock } from '../../lib/timezone'
+import { locationForCountryName } from '../../data/catalog'
+import { countryNamesShowingOffset, formatClock, zonedDateTime } from '../../lib/timezone'
 
 interface MapPosition {
   coordinates: [number, number]
@@ -20,29 +18,72 @@ interface MapTransform {
   zoom: number
 }
 
-const MAP_WIDTH = 800
-const MAP_HEIGHT = 410
-const BAND_COUNT = 25
-const BAND_WIDTH = MAP_WIDTH / BAND_COUNT
-const INITIAL_POSITION: MapPosition = { coordinates: [8, 10], zoom: 1.2 }
-const projection = geoEqualEarth().translate([MAP_WIDTH / 2, MAP_HEIGHT / 2]).scale(126)
+interface MapSize {
+  width: number
+  height: number
+}
 
-function transformForPosition({ coordinates, zoom }: MapPosition): MapTransform {
-  const [projectedX] = projection(coordinates) ?? [MAP_WIDTH / 2, MAP_HEIGHT / 2]
-  return { x: MAP_WIDTH / 2 - projectedX * zoom, zoom }
+const FALLBACK_SIZE: MapSize = { width: 800, height: 410 }
+const BAND_COUNT = 25
+// Decorative band lines drawn beyond ±12 so the grid reaches the panel edges.
+const EXTRA_BAND_LINES = 12
+// The UTC band grid is stylized: 25 bands span about 1.17× the projected world width.
+const BAND_WIDTH_PER_SCALE = 32 / 126
+const WORLD_WIDTH_FILL = 0.85
+const WORLD_HEIGHT_FILL = 0.9
+const MARKER_SCALE = 1.3
+const ATLAS_COUNTRY_NAMES = (world as unknown as { objects: { countries: { geometries: { properties?: { name?: string } }[] } } })
+  .objects.countries.geometries.map((geometry) => String(geometry.properties?.name ?? ''))
+const INITIAL_POSITION: MapPosition = { coordinates: [8, 10], zoom: 1.2 }
+const unitProjection = geoEqualEarth().scale(1).translate([0, 0])
+const UNIT_WORLD_WIDTH = 2 * (unitProjection([180, 0])?.[0] ?? 2.7)
+const UNIT_WORLD_HEIGHT = 2 * Math.abs(unitProjection([0, 90])?.[1] ?? 1.3)
+
+function fittedProjection({ width, height }: MapSize): GeoProjection {
+  const scale = Math.min(width * WORLD_WIDTH_FILL / UNIT_WORLD_WIDTH, height * WORLD_HEIGHT_FILL / UNIT_WORLD_HEIGHT)
+  return geoEqualEarth().translate([width / 2, height / 2]).scale(scale)
+}
+
+function transformForPosition({ coordinates, zoom }: MapPosition, projection: GeoProjection, width: number): MapTransform {
+  const [projectedX] = projection(coordinates) ?? [width / 2, 0]
+  return { x: width / 2 - projectedX * zoom, zoom }
+}
+
+function useElementSize<T extends HTMLElement>() {
+  const ref = useRef<T>(null)
+  const [size, setSize] = useState<MapSize>(FALLBACK_SIZE)
+  useLayoutEffect(() => {
+    const element = ref.current
+    if (!element || typeof ResizeObserver === 'undefined') return
+    const update = (width: number, height: number) => {
+      if (width < 1 || height < 1) return
+      setSize((current) => current.width === width && current.height === height ? current : { width, height })
+    }
+    const observer = new ResizeObserver(([entry]) => update(Math.round(entry.contentRect.width), Math.round(entry.contentRect.height)))
+    observer.observe(element)
+    return () => observer.disconnect()
+  }, [])
+  return [ref, size] as const
 }
 
 export function WorldMap({ now }: { now: number }) {
   const { active, inspectedOffset, mapCountrySelected, timeFormat, clearMapSelection, selectLocation, selectOffset } = useTimezones()
+  const [canvasRef, size] = useElementSize<HTMLDivElement>()
+  const { width, height } = size
+  const sizeKey = `${width}x${height}`
+  const projection = useMemo(() => fittedProjection(size), [size])
+  const bandWidth = projection.scale() * BAND_WIDTH_PER_SCALE
+  const bandStart = width / 2 - BAND_COUNT / 2 * bandWidth
   const [position, setPosition] = useState<MapPosition>(INITIAL_POSITION)
-  const [mapTransform, setMapTransform] = useState<MapTransform>(() => transformForPosition(INITIAL_POSITION))
+  // Live pan/zoom from the zoom group; falls back to the committed position after a resize remounts it.
+  const [liveTransform, setLiveTransform] = useState<(MapTransform & { sizeKey: string }) | null>(null)
+  const mapTransform = liveTransform?.sizeKey === sizeKey ? liveTransform : transformForPosition(position, projection, width)
   const activeTime = formatClock(now, active.timezone, timeFormat)
   const markerWidth = Math.max(96, active.country.length * 6.4 + 30, active.city.length * 5.3 + 30, activeTime.length * 5.3 + 30)
+  const comparedOffset = inspectedOffset === null ? zonedDateTime(now, active.timezone).offset : inspectedOffset * 60
   const relatedCountries = useMemo(
-    () => inspectedOffset === null
-      ? countryNamesForTimezone(active.timezone)
-      : countryNamesForOffset(inspectedOffset, now),
-    [active.timezone, inspectedOffset, now],
+    () => countryNamesShowingOffset(ATLAS_COUNTRY_NAMES, comparedOffset, now),
+    [comparedOffset, now],
   )
 
   const selectCountry = (name: string, coordinates: [number, number]) => {
@@ -53,7 +94,7 @@ export function WorldMap({ now }: { now: number }) {
 
   const moveMap = (next: MapPosition) => {
     setPosition(next)
-    setMapTransform(transformForPosition(next))
+    setLiveTransform(null)
   }
 
   return (
@@ -62,35 +103,39 @@ export function WorldMap({ now }: { now: number }) {
         {Array.from({ length: BAND_COUNT }, (_, index) => {
           const offset = index - 12
           const label = offset === 0 ? 'UTC' : `UTC${offset > 0 ? '+' : '−'}${Math.abs(offset)}`
-          const left = (mapTransform.x + index * BAND_WIDTH * mapTransform.zoom) / MAP_WIDTH * 100
-          const width = BAND_WIDTH * mapTransform.zoom / MAP_WIDTH * 100
-          return <button style={{ left: `${left}%`, width: `${width}%` }} className={inspectedOffset === offset ? 'active' : ''} key={index} onClick={() => selectOffset(offset)} aria-label={`Select ${label}`}>{offset === 0 ? 'UTC' : offset > 0 ? `+${offset}` : offset}</button>
+          const left = (mapTransform.x + (bandStart + index * bandWidth) * mapTransform.zoom) / width * 100
+          const bandPercent = bandWidth * mapTransform.zoom / width * 100
+          return <button style={{ left: `${left}%`, width: `${bandPercent}%` }} className={inspectedOffset === offset ? 'active' : ''} key={index} onClick={() => selectOffset(offset)} aria-label={`Select ${label}`}>{offset === 0 ? 'UTC' : offset > 0 ? `+${offset}` : offset}</button>
         })}
       </div>
-      <div className="map-canvas">
-        <svg className="band-lines" viewBox={`0 0 ${MAP_WIDTH} ${MAP_HEIGHT}`} preserveAspectRatio="none" aria-hidden="true">
+      <div className="map-canvas" ref={canvasRef}>
+        <svg className="band-lines" viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="none" aria-hidden="true">
           <g className="band-transform" transform={`translate(${mapTransform.x} 0) scale(${mapTransform.zoom} 1)`}>
-            {Array.from({ length: BAND_COUNT }, (_, index) => <rect key={index} x={index * BAND_WIDTH} width={BAND_WIDTH} height={MAP_HEIGHT} className={index % 2 ? 'band-even' : 'band-odd'} />)}
+            {Array.from({ length: BAND_COUNT + EXTRA_BAND_LINES * 2 }, (_, line) => {
+              const index = line - EXTRA_BAND_LINES
+              return <rect key={index} x={bandStart + index * bandWidth} width={bandWidth} height={height} />
+            })}
           </g>
         </svg>
         <ComposableMap
-          width={MAP_WIDTH}
-          height={MAP_HEIGHT}
-          projectionConfig={{ scale: 126 }}
+          width={width}
+          height={height}
+          projection={projection}
           role="img"
           aria-label="World map. Select a country to inspect its timezone."
         >
           <ZoomableGroup
+            key={sizeKey}
             center={position.coordinates}
             zoom={position.zoom}
             minZoom={1}
             maxZoom={4}
             onMove={({ x, zoom }) => {
-              if (x !== undefined && zoom !== undefined) setMapTransform({ x, zoom })
+              if (x !== undefined && zoom !== undefined) setLiveTransform({ x, zoom, sizeKey })
             }}
             onMoveEnd={({ coordinates, zoom }) => setPosition({ coordinates: coordinates as [number, number], zoom: zoom ?? position.zoom })}
           >
-            <rect className="map-background" x={-MAP_WIDTH * 4} y={-MAP_HEIGHT * 4} width={MAP_WIDTH * 9} height={MAP_HEIGHT * 9} fill="transparent" onClick={clearMapSelection} />
+            <rect className="map-background" x={-width * 4} y={-height * 4} width={width * 9} height={height * 9} fill="transparent" onClick={clearMapSelection} />
             <Geographies geography={world as never}>
               {({ geographies }) => {
                 const selectedGeography = mapCountrySelected && inspectedOffset === null
@@ -130,7 +175,7 @@ export function WorldMap({ now }: { now: number }) {
                     )
                   })}
                   {selectedGeography && <Marker coordinates={geoCentroid(selectedGeography as never) as [number, number]}>
-                    <g className="active-marker">
+                    <g className="active-marker" transform={`scale(${MARKER_SCALE / mapTransform.zoom})`}>
                       <rect x={9} y={-27} width={markerWidth} height={54} rx={4} />
                       <text className="marker-country" x={23} y={-10}>{active.country}</text>
                       <text className="marker-city" x={23} y={3}>{active.city}</text>

@@ -56,7 +56,7 @@ test('search selects a timezone and only adds it after confirmation', async ({ p
   await expect(addButton).toHaveCSS('color', 'rgb(17, 17, 17)')
   await addButton.click()
   if ((await page.viewportSize())!.width <= 800) {
-    await page.locator('svg.rsm-svg').click({ position: { x: 5, y: 5 } })
+    await page.locator('svg.rsm-svg').click({ position: { x: 5, y: 45 } })
   }
   const tokyoCard = page.getByRole('article').filter({ hasText: 'Tokyo' })
   await expect(tokyoCard).toBeVisible()
@@ -187,7 +187,7 @@ test('expanded cities are searchable and can relabel an existing timezone card',
   await page.getByRole('option', { name: /Cities: Manchester/i }).click()
   await expect(sidebar.locator('.zone-city')).toHaveText('Manchester')
   await sidebar.getByRole('button', { name: 'Use Manchester in comparison' }).click()
-  if ((await page.viewportSize())!.width <= 800) await page.locator('svg.rsm-svg').click({ position: { x: 5, y: 5 } })
+  if ((await page.viewportSize())!.width <= 800) await page.locator('svg.rsm-svg').click({ position: { x: 5, y: 45 } })
   await expect(page.getByRole('article').filter({ hasText: 'Manchester' })).toBeVisible()
   await expect(page.getByRole('article').filter({ hasText: 'London' })).toHaveCount(0)
 
@@ -209,7 +209,7 @@ test('expanded cities are searchable and can relabel an existing timezone card',
   await expect(sidebar.locator('.zone-city')).toHaveText('Leeds')
   await sidebar.getByRole('button', { name: 'Use Leeds in comparison' }).click()
   await page.reload()
-  if ((await page.viewportSize())!.width <= 800) await page.locator('svg.rsm-svg').click({ position: { x: 5, y: 5 } })
+  if ((await page.viewportSize())!.width <= 800) await page.locator('svg.rsm-svg').click({ position: { x: 5, y: 45 } })
   await expect(page.getByRole('article').filter({ hasText: 'Leeds' })).toBeVisible()
 
   await search.fill('Marseille')
@@ -299,18 +299,18 @@ test('mobile map prioritizes selected country details and wraps cards after dese
   const strip = page.getByRole('region', { name: 'Compared timezones' })
   await expect(strip).toBeHidden()
 
-  await page.locator('svg.rsm-svg').click({ position: { x: 5, y: 5 } })
+  await page.locator('svg.rsm-svg').click({ position: { x: 5, y: 45 } })
   await expect(strip).toBeVisible()
   await expect(page.locator('.selected-country')).toHaveCount(0)
 
   await page.getByRole('combobox', { name: /search cities/i }).fill('Tokyo')
   await page.getByRole('option', { name: /Tokyo/i }).first().click()
   await page.getByRole('button', { name: 'Add to comparison' }).click()
-  await page.locator('svg.rsm-svg').click({ position: { x: 5, y: 5 } })
+  await page.locator('svg.rsm-svg').click({ position: { x: 5, y: 45 } })
   await page.getByRole('combobox', { name: /search cities/i }).fill('Delhi')
   await page.getByRole('option', { name: /Delhi/i }).first().click()
   await page.getByRole('button', { name: 'Add to comparison' }).click()
-  await page.locator('svg.rsm-svg').click({ position: { x: 5, y: 5 } })
+  await page.locator('svg.rsm-svg').click({ position: { x: 5, y: 45 } })
   const cards = page.locator('.timezone-card')
   const first = (await cards.nth(0).boundingBox())!
   const second = (await cards.nth(1).boundingBox())!

@@ -1,5 +1,5 @@
 import { DateTime } from 'luxon'
-import { catalogCountries, catalogTimezones, countryNamesForTimezone, timezoneChoicesForCountry } from '../data/catalog'
+import { catalogCountries, catalogTimezones, displayTimezoneForCountryName, timezoneChoicesForCountry } from '../data/catalog'
 import { locations } from '../data/locations'
 import type { LocationRecord, TimeFormat } from '../types/timezone'
 
@@ -140,13 +140,16 @@ export const zoneDisplayNames = (timezone: string, timestamp: number) => {
   }
 }
 
-export function countryNamesForOffset(offset: number, timestamp: number) {
-  const names = new Set<string>()
-  for (const location of catalogTimezones) {
-    if (zonedDateTime(timestamp, location.timezone).offset !== offset * 60) continue
-    for (const country of countryNamesForTimezone(location.timezone)) names.add(country)
-  }
-  return names
+/**
+ * Map country names whose displayed time currently has the given UTC offset, in minutes.
+ * Each country is judged only by the one timezone the map shows for it (Sydney for Australia),
+ * never by its other regions, so shaded countries always show the same clock time.
+ */
+export function countryNamesShowingOffset(countryNames: readonly string[], offsetMinutes: number, timestamp: number) {
+  return new Set(countryNames.filter((name) => {
+    const timezone = displayTimezoneForCountryName(name)
+    return timezone !== null && zonedDateTime(timestamp, timezone).offset === offsetMinutes
+  }))
 }
 
 export function locationsForOffset(offset: number, timestamp: number) {
