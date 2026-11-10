@@ -23,6 +23,7 @@ All notable changes follow Keep a Changelog categories.
 - Combined country cities and timezone regions into one compact, icon-labelled sidebar list, with seasonal abbreviations retained as search aliases.
 - Expanded comparisons to ten timezones in a two-row, five-column desktop grid and removed the redundant Add City placeholder card.
 - Moved time comparison into a dedicated **Compare** view with per-location, labeled hourly cells and persistent work/night ranges.
+- The map now fills its whole panel at any window size, with the UTC band header, zoom controls, region labels and legend laid over it; the selected-country label keeps a constant readable size while zooming.
 - Restyled application scrollbars with slim, rounded, theme-aware tracks and thumbs.
 - Distinguished current civil offsets from geographic longitude guides, including clearer DST and standard-offset details.
 - Separated map/search/sidebar selection from the explicit **Add to comparison** action.
