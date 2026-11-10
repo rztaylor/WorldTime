@@ -4,6 +4,8 @@ All notable changes follow Keep a Changelog categories.
 
 ## Unreleased
 
+## [0.1.0] - 2026-11-10
+
 ### Added
 
 - An offline catalog of major cities and capitals across countries, with searchable UK, French, and Spanish coverage.
