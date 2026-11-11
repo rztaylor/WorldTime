@@ -4,6 +4,10 @@ All notable changes follow Keep a Changelog categories.
 
 ## Unreleased
 
+### Changed
+
+- The app shell loads less JavaScript before it appears; the world map and Compare view load right after as separate files from the same site.
+
 ## [0.1.0] - 2026-11-10
 
 ### Added
