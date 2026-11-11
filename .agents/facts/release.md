@@ -9,5 +9,6 @@
 - Production source branch: `release`. GitHub Actions runs `npm run check` and `npm run test:browser`, then deploys `dist/` by Direct Upload.
 - Publishing uses `.github/workflows/publish-pages.yml` and the GitHub Actions `Live` environment with `CLOUDFLARE_API_TOKEN`. The interactive Cloudflare MCP credential is separate from the Actions token. Keep credentials out of the repository.
 - Rollback uses a previous successful Pages deployment. ChatGPT Sites is no longer a publishing target.
+- Pull requests into `main` run `.github/workflows/pr-checks.yml`: `npm ci`, `npm run check`, and `npm run test:browser` on the same pinned runner as publishing, with no secrets or deployment environment.
 - Ordinary validation requires no credentials. Skipped checks must be named with reason and residual risk.
 - Supported browsers: current evergreen desktop and mobile browsers with ES2022, SVG, Intl, and localStorage support.
