@@ -74,7 +74,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 
 .app-shell { width: min(100% - 28px, 1500px); height: calc(100dvh - 44px); min-height: 620px; margin: 22px auto; display: flex; flex-direction: column; overflow: hidden; background: var(--canvas); border: 1px solid var(--line); border-radius: 8px; box-shadow: 0 20px 58px rgb(0 0 0 / 0.11); }
 .site-header { height: 72px; flex: 0 0 72px; display: flex; align-items: center; gap: clamp(20px, 4vw, 58px); padding: 0 20px; border-bottom: 1px solid var(--line); background: var(--canvas); position: relative; z-index: 20; }
-.brand, .footer-brand { color: var(--ink); text-decoration: none; display: flex; align-items: center; gap: 11px; white-space: nowrap; }
+.brand { color: var(--ink); text-decoration: none; display: flex; align-items: center; gap: 11px; white-space: nowrap; }
 .brand { padding: 0; border: 0; background: none; text-align: left; cursor: pointer; }
 .brand > svg, .brand-logo { width: 30px; height: 30px; stroke-width: 1.8; }
 .brand span { display: flex; flex-direction: column; }
